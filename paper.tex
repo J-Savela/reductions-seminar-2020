@@ -101,8 +101,49 @@ Branch-and-bound procedure utilizing cutting planes, i.e., \emph{branch-and-cut}
 \section{Protein folding}
 
 
-\section{Haplotype inference}
+\subsection{SAT formulation}
 
+\subsection{ILP formulation}
+
+
+\section{Haplotype inference}
+The human genetic information is contained in the double-stranded DNA molecules consisting of a linear sequence of 4 bases (\textbf{A}denosine, \textbf{C}ytosine, \textbf{G}uanine, \textbf{T}hymine) in the phosphate-deoxyribose backbone.
+The dna molecules, which are packed into chromosomes, consist of protein-coding intervals, which are called genes, and other non-coding parts.
+Different variants of a gene are called alleles.
+Humans are a \emph{diploid} species, which means that we have two copies of each chromosome (one from each parent).
+We thus have two alleles of each gene, and we are said to be \emph{homozygous} with regard to a gene if we have two identical alleles and \emph{heterozygous} otherwise.
+
+\emph{Haplotype} refers to the information contained in a single chromosome whereas the conflated information contained in the pair of  homologous chromosomes inherited is referred to as the \emph{genotype}.
+In practice it is difficult and expensive to experimentally detect haplotype information.
+Detecting genotype information has, however, become much faster, cheaper and more reliable in the recent decades.
+Potential haplotypes can be computationally inferred from genotype data, and this is the problem referred to as the haplotype inference (HI) problem.
+Haplotype data has the potential to yield new insight into genetic predisposition to, e.g., diseases, which makes the HI problem of great importance.
+
+\subsection{Haplotype Inference by Pure Parsimony}
+The genotype data for the computational problem is represented as vectors over the alphabet $\{0, 1, 2\}$. 
+The values $0$ and $1$ indicate that the location in the diploid genotype is homozygous with allele $0$ or allele $1$, respectively, 
+whereas the value $2$ indicates that the location is heterozygous.
+The corresponding haplotype data then consists of a pair of vectors over the binary alphabet $\{0, 1\}$ with each pair corresponding to the haplotype inherited from each parent.
+Denote a genotype vector by $g=g_1\dots g_n$ and the haplotype vectors $h=h_1\dots h_n$ and $h'=h'_1\dots h'_n$.
+The pair of haplotype vectors $(h, h')$ corresponds to genotype $g$ if 
+\begin{itemize}
+\item $h_i=h'_i=0$ whenever $g_i = 0$,
+\item $h_i=h'_i=1$ whenever $g_i = 1$, and
+\item $h_i \neq h'_i$ whenever $g_i = 2$.
+\end{itemize}
+The haplotype $(01011, 00001)$, for example, corresponds to the genotype $02021$.
+Note that there can be several distinct pairs of haplotype vectors for each genotype.
+For example the genotype $02021$ corresponds also to the pair $(00011, 01001)$.
+
+The input to the HI problem is the genotype data of $m$ individuals with the genotype vectors being all of length $n$.
+The objective is to find a pair of haplotype vectors for each of the $m$ genotypes such that the two haplotype vectors yield exactly the genotype vector.
+That is, for each genotype vector $g$ find a pair of haplotype vectors $(h, h')$ such that $g$ corresponds to $(h, h')$.
+The Haplotype Inference by Pure Parsimony (HIPP) sets another constraint on this problem, namely that the set of distinct haplotype vectors used should be as small as possible.
+This condition has been experimentally validated to yield relatively accurate haplotype data.
+
+\subsection{SAT formulation}
+
+\subsection{ILP formulation}
 
 \bibliographystyle{plain}
 \bibliography{paper.bib}
