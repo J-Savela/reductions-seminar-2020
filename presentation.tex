@@ -1,0 +1,197 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Beamer Presentation
+% LaTeX Template
+% Version 1.0 (10/11/12)
+%
+% This template has been downloaded from:
+% http://www.LaTeXTemplates.com
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND THEMES
+%----------------------------------------------------------------------------------------
+
+\documentclass[handout]{beamer}
+%\documentclass{beamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage{csquotes}
+
+\mode<presentation> {
+
+% The Beamer class comes with a number of default slide themes
+% which change the colors and layouts of slides. Below this is a list
+% of all the themes, uncomment each in turn to see what they look like.
+
+%\usetheme{default}
+%\usetheme{AnnArbor}
+%\usetheme{Antibes}
+%\usetheme{Bergen}
+%\usetheme{Berkeley}
+%\usetheme{Berlin}
+%\usetheme{Boadilla}
+%\usetheme{CambridgeUS}
+\usetheme{Copenhagen}
+%\usetheme{Darmstadt}
+%\usetheme{Dresden}
+%\usetheme{Frankfurt}
+%\usetheme{Goettingen}
+%\usetheme{Hannover}
+%\usetheme{Ilmenau}
+%\usetheme{JuanLesPins}
+%\usetheme{Luebeck}
+%\usetheme{Madrid}
+%\usetheme{Malmoe}
+%\usetheme{Marburg}
+%\usetheme{Montpellier}
+%\usetheme{PaloAlto}
+%\usetheme{Pittsburgh}
+%\usetheme{Rochester}
+%\usetheme{Singapore}
+%\usetheme{Szeged}
+%\usetheme{Warsaw}
+
+% As well as themes, the Beamer class has a number of color themes
+% for any slide theme. Uncomment each of these in turn to see how it
+% changes the colors of your current slide theme.
+
+%\usecolortheme{albatross}
+%\usecolortheme{beaver}
+%\usecolortheme{beetle}
+%\usecolortheme{crane}
+%\usecolortheme{dolphin}
+%\usecolortheme{dove}
+%\usecolortheme{fly}
+%\usecolortheme{lily}
+%\usecolortheme{orchid}
+%\usecolortheme{rose}
+%\usecolortheme{seagull}
+%\usecolortheme{seahorse}
+%\usecolortheme{whale}
+%\usecolortheme{wolverine}
+
+\addtobeamertemplate{navigation symbols}{}{%
+    \usebeamerfont{footline}%
+    \usebeamercolor[fg]{footline}%
+    \hspace{1em}%
+    \insertframenumber/\inserttotalframenumber
+}
+%\setbeamertemplate{footline} % To remove the footer line in all slides uncomment this line
+%\setbeamertemplate{footline}[page number] % To replace the footer line in all slides with a simple slide count uncomment this line
+
+%\setbeamertemplate{navigation symbols}{} % To remove the navigation symbols from the bottom of all slides uncomment this line
+}
+
+\usepackage{graphicx} % Allows including images
+\usepackage{booktabs} % Allows the use of \toprule, \midrule and \bottomrule in tables
+\usepackage{epstopdf}
+\usepackage[backend=bibtex, style=numeric-comp, isbn=false, url=false, hyperref=true]{biblatex}
+\usepackage{bibentry}
+\usepackage[algoruled]{algorithm2e}
+\setbeamertemplate{bibliography item}{\insertbiblabel}
+
+\renewcommand*{\bibfont}{\tiny}
+
+%----------------------------------------------------------------------------------------
+%	TITLE PAGE
+%----------------------------------------------------------------------------------------
+
+\title[]{SAT encodings for hard problems in computational biology} % The short title appears at the bottom of every slide, the full title is only on the title page
+
+\author{Jarkko Savela} % Your name
+\institute{University of Helsinki} % Your institution as it will appear on the bottom of every slide, may be shorthand to save space
+\date{\today} % Date, can be changed to a custom date
+\bibliography{presentation}
+\begin{document}
+
+\begin{frame}
+\titlepage % Print the title page as the first slide
+\end{frame}
+
+\begin{frame}
+\begin{itemize}
+\item \fullcite{DBLP:conf/alcob/BrownZG20}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Background}
+\begin{itemize}
+\item ILP has been very successful in computational biology~\cite{gusfield2019integer}
+\item BUT ILP is ineffective for certain problems
+\item SAT has been successfully applied to certain computational biology problems such as haplotyping by pure parsimony~\cite{DBLP:conf/aaai/LynceM06, DBLP:journals/anor/GracaMLO11, DBLP:journals/jda/JagerCZ16}
+\item Try other techniques (such as SAT) on problems ILP cannot handle
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Article contents}
+\begin{itemize}
+\item Empirical comparison of SAT-encodings and ILP formulations of 4 problems from computational biology
+\begin{enumerate}
+\item Protein folding under HP model
+\item Transforming gene orders by reversals
+\item Computing the history bound
+\item Haplotyping by pure parsimony
+\end{enumerate}
+\item SAT solver used is pLingeling and Glucose, ILP solver Gurobi
+\item ILP was better for problem 1 with some exceptions
+\item SAT was superior in solving problems 2, 3 and 4 (wrt runtime and avoiding extreme behavior of ILP solvers)
+\item SAT was able to solve instances of problem 4 that ILP could not solve
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{HP model}
+\begin{itemize}
+\item Proteins are linear chains of amino acids
+\item Each amino acid is hydrophilic (H) or hydrophobic (P)
+\item Hydrophilic amino acids form hydrogen bonds 
+\item Prototein is a binary sequence with 0 encoding P and 1 encoding H
+\item Problem: Embed a given prototein into a $2$-D (or $3$-D) grid
+\item Objective: maximize adjacent H's (i.e., hydrogen bonds)
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{SAT encoding}
+\begin{itemize}
+\item Binary sequence $S$, grid $G$
+\item Variables:
+\begin{itemize}
+\item[$X_{i,j}$]: $S[i]$ is at position $j$ of $G$
+\item [$T_j$]: true iff a $1$ occupies position $j$ of $G$
+\item [$C_{j,m}$]: true iff both positions $j$ and $m$ are occupied by a $1$
+\end{itemize}
+\item Constraints
+\begin{itemize}
+\item Each grid point has at most one sequence entry
+\item ech sequence entry is in exactly one grid point
+\item Adjacent sequence entries are adjacent in the grid
+\item + Machinery for counting number of contacts
+\end{itemize}
+\item Optimization via binary search
+\item ILP achieved better runtimes but took long in some instances
+\item SAT had slightly longer runtimes but they performance was more consistent
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Direction for my seminar report}
+\begin{itemize}
+\item More in-depth exploration of the use of SAT in computational and systems biology
+\item (+comparison with ILP)
+\end{itemize}
+\end{frame}
+
+\begin{frame}[allowframebreaks]
+\frametitle{References}
+\printbibliography
+\end{frame}
+
+
+\end{document} 
