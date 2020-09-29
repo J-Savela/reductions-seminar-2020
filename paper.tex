@@ -53,7 +53,7 @@
 
 
 \sloppy
-\title{SAT-encodings for Computational and Systems Biology}
+\title{Comparing SAT and ILP formulations for Computational and Systems Biology problems}
 \date{2020 Autumn}
 \author{Jarkko Savela}
 
@@ -68,13 +68,43 @@
 \section{Introduction}
 
 
+\section{Boolean Satisfiability}
+Boolean satisfiability~\cite{DBLP:series/faia/2009-185}, often referred to as the SAT problem, is the satisfiability problem of propositional logic.
+That is, the problem is to find an assignment $s$ that satisfies the input formula $\phi$.
+The formula $\phi$ is inductively constructed from propositional atoms (i.e., Boolean variables) and the usual connectives; conjunction $\wedge$, disjunction $\vee$, negation $\neg$, implication $\rightarrow$ and bi-implication $\leftrightarrow$.
+The assignment $s$ gives each boolean variable in $\phi$ a truth value, 0 or 1.
+
+In practice the input formula is usually restricted to be in \emph{conjunctive normal form} (CNF).
+A formula $\phi$ is in CNF if it is a conjunction of \emph{clauses}
+$$ \bigwedge_{i\in I} C_i $$
+where each clause $C_i$ is a disjunction of \emph{literals}
+$$ C_i = \bigvee_{j\in J_i} l_j $$
+and each literal is either an atom $p$ or a negated atom $\neg p$.
+CNF is a convenient standard format partly due to the fact that efficient polynomial-time algorithms exist for transforming arbitrary formulas into \emph{linear-size, equisatisfiable} CNF formulas~\cite{tseitin1983, DBLP:journals/jsc/PlaistedG86}.
+
+Practically efficient algorithms for solving the SAT problem have been developed despite the fact that SAT is an NP-Complete problem~\cite{DBLP:conf/stoc/Cook71}, 
+and SAT has become an importent problem solving technique with applications in model checking and verification, planning, scheduling, cryptography, computational biology et cetera.
+The most efficient current SAT solvers are based on the \emph{conflict-driven clause learning} algorithm (CDCL) and use many optimizations and efficient data structures~\cite{DBLP:conf/iccad/SilvaS96, DBLP:journals/tc/Marques-SilvaS99, DBLP:conf/dac/MoskewiczMZZM01, DBLP:conf/aaai/GomesSK98, DBLP:journals/dam/GoldbergN07, ryan2004efficient, DBLP:conf/aaai/BayardoS97, DBLP:conf/sat/LewisSB05}.
+
+
+\section{Integer Linear Programming}
+Integer linear programming (ILP) is the problem of finding an optimal assignment to a set of integer variables subject to constraints in the form of linear inequalities~\cite{DBLP:books/ph/PapadimitriouS82}.
+An ILP program thus consists of a vector of integer variables $\mathbf{x}$, a cost vector $\mathbf{c}$ as well as a matrix $A$ and vector $\mathbf{b}$ of coefficients with the goal of minimizing $\mathbf{c}^T \mathbf{x}$ under the constraints that $A\mathbf{x} \leq \mathbf{b}$.
+
+ILP is also an NP-hard problem~\cite{DBLP:conf/coco/Karp72} and finds applications in planning, scheduling, computational biology and in many other domains.
+
+The \emph{simplex algorithm} is a practically efficient (although worst-case exponential time) algorithm for solving general linear programs where the variables may take non-integral values as well.
+ILPs can be solved via a \emph{branch-and-bound} procedure in which the simplex algorithm is used to solve the continuous relaxations of the program with or without the use of \emph{cutting planes}.
+Branch-and-bound procedure utilizing cutting planes, i.e., \emph{branch-and-cut}, uses auxiliary constraints to prune away non-integral solutions~\cite{DBLP:books/ph/PapadimitriouS82}.
+
+
 \section{Protein folding}
 
 
 \section{Haplotype inference}
 
 
-%\bibliographystyle{plain}
-%\bibliography{paper.bib}
+\bibliographystyle{plain}
+\bibliography{paper.bib}
 
 \end{document}
