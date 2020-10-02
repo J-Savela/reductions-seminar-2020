@@ -152,8 +152,9 @@ We construct a propositional formula $\phi (\mathcal{G}, r)$ which is satisfiabl
 To solve the HIPP problem the satisfiability of $\phi (\mathcal{G}, r)$ is checked for increasing values of $r$ until a value is found such that $\phi (\mathcal{G}, r)$ is satisfiable but $\phi (\mathcal{G}, r-1)$ is not.
 This value of $r$ is then the minimum number of haplotypes required, and the actual haplotypes can be extracted from the satisfying assignment to $\phi (\mathcal{G}, r)$.
 
-The formula $\phi (\mathcal{G}, r)$ considers a set of $r$ distinct haplotypes $h_k$ and encodes the assignment of a pair $(h_{k_1}, h_{k_2})$ to each $g_i$ using Boolean variables $s^a_{k_1i}$ and $s^b_{k_2i}$.
+The formula $\phi (\mathcal{G}, r)$ considers a set of $r$ distinct haplotypes $h_k$ and encodes the assignment of a pair $(h_{k_1}, h_{k_2})$ to each $g_i$ using Boolean variables $s^a_{k_1i}$, $s^b_{k_2i}$ and $h_{kj}$.
 That is, variables $s^a_{k_1i}$ and $s^b_{k_2i}$ being set true indicates that $(h_{k_1}, h_{k_2})$ is the pair of haplotypes assigned to genotype $g_i$.
+The variable $h_{kj}$ is the $j$'th entry of haplotype $h_k$.
 The formula then requires two types of constraints
 \begin{enumerate}
 \item[(i)] The selector variable $s^a_{ki}$ should select a unique haplotype, i.e., for each genotype $g_i$ exactly one variable $s^a_{ki}$ should be set true (and similarly for $s^b_{ki}$). 
@@ -162,16 +163,34 @@ The formula then requires two types of constraints
 
 Constraint (i) corresponds to equations $\sum_{1\leq k\leq r} s^a_{ki} = 1$ and $\sum_{1\leq k\leq r} s^b_{ki} = 1$ holding for all $i$ such that $1\leq i \leq n$.
 This constraint is enforced in $\phi (\mathcal{R}, r)$ utilizing a propositional encoding of an \emph{1-bit adder circuit}.
-The adder circuit uses variables $v^a_{ki}$ where $1\leq k \leq r$ and $1\leq i\leq n$ and the following constraints (the ones for $s^b_{ki}$ are similar).
+The adder circuit uses variables $v^a_{ki}$ where $1\leq k \leq r+1$ and $1\leq i\leq n$ and the following constraints (the ones for $s^b_{ki}$ are similar).
 \begin{eqnarray}
 \forall i\text{ such that } 1\leq i\leq n: & v^a_{1i} \leftrightarrow s^a_{1i}\label{hipp-sat:clause1}\\
 \forall k, i\text{ such that } 1\leq k \leq r,\ 1\leq i\leq n: & \neg v^a_{ki} \vee \neg s^a_{ki}\label{hipp-sat:clause2}\\
 \forall k, i\text{ such that } 1\leq k \leq r,\ 1\leq i\leq n: & v^a_{(k+1)i} \leftrightarrow (s^a_{ki}\vee v^a_{ki} )\label{hipp-sat:clause3}\\
-\forall i\text{ such that } 1\leq i\leq n: & v^a_{1i} \leftrightarrow s^a_{1i}\label{hipp-sat:clause4}
+\forall i\text{ such that } 1\leq i\leq n: & v^a_{(r+1)i}=1\label{hipp-sat:clause4}
 \end{eqnarray}
+Constraint \eqref{hipp-sat:clause1} enforces $v^a_{1i}$ and $s^a_{1i}$ to take on the same value in every satisfying assignment whereas constraint \eqref{hipp-sat:clause4} enforces variable $v^a_{(r+1)i}$ to be evaluated to true.
+Constraint \eqref{hipp-sat:clause2} prevents $v^a_{ki}$ and $s^a_{ki}$ from being simultaneously assigned true, 
+and constraint \eqref{hipp-sat:clause3} sets $v^a_{(k+1)i}$ to 1 whenever either $s^a_{ki}$ or $v^a_{ki}$ is assigned 1.
 
+It can be shown using induction that the variable $v^a_{ki}$ (for $k>1$) represents the disjunction $\bigvee_{1\leq h\leq k-1}s^a_{hi} = s^a_{1i}\vee\dots \vee s^a_{(k-1)i}$.
+From constraints \eqref{hipp-sat:clause1} and \eqref{hipp-sat:clause3} it follows that $v^a_{2i}$ is equivalent to $s^a_{1i}$.
+Constraint \eqref{hipp-sat:clause3} also provides yields the proof of the inductive step.
+Thus, constraint \eqref{hipp-sat:clause4} which sets $v^a_{(r+1)i}=1$ ensures that at least one of $s^a_{1i},\dots , s^a_{ri}$ is set to 1.
+Furthermore, there can only be one $s^a_{ki}$ set to 1 due to the following reasoning.
+Since $v^a_{ki}$ is equivalent to $\bigvee_{1\leq h\leq k-1}s^a_{hi} = s^a_{1i}\vee\dots \vee s^a_{(k-1)i}$ it follows that $v^a_{ki}$ being set 1 enforces all $v^a_{hi}$ to be set 1 for $h>k$.
+Now assume there are two indices $h$ and $h'$ ($h<h'$) such that both $s^a_{hi}$ and $s^a_{h'i}$ are assigned true.
+By the previous observation $v^a_{h'i}$ is also assigned true which violates constraint \eqref{hipp-sat:clause2}.
 
-
+Next we formalize constraint (ii) stating that each genotype $g_i$ should be explained by its selected pair of haplotypes $(h_{k_1}, h_{k_2})$.
+If $g_{ij}$ (the $j$'th entry of $g_i$) is 0, then the $j$'th entries of the chosen haplotypes should also be 0.
+This is encoded by $s^a_{ki}\rightarrow\neg h_{kj}$ and $s^b_{ki}\rightarrow\neg h_{kj}$ for all $1\leq k \leq r$.
+Similarly, if $g_{ij}$ is 1, then the $j$'th entries of the chosen haplotypes should also be 1, which is encoded by $s^a_{ki}\rightarrow h_{kj}$ and $s^b_{ki}\rightarrow h_{kj}$ for all $1\leq k \leq r$.
+If $g_{ij}$ is 2, then the $j$'th entry of the haplotypes should differ.
+Variables $g^a_{ij}$ and $g^b_{ij}$ are used to decide which haplotype should be assigned 0 and which should be assigned 1.
+The clauses $(g^a_{ij}\vee g^b_{ij})\wedge(\neg g^a_{ij}\vee \neg g^b_{ij})$ enforce $g^a_{ij}$ and $g^b_{ij}$ to take on different values.
+The constraints $s^a_{ki}\rightarrow (h_{kj}\leftrightarrow g^a_{ij})$ and $s^b_{ki}\rightarrow (h_{kj}\leftrightarrow g^b_{ij})$ then enforce the selected haplotypes to take on values dictated by $g^a_{ij}$ and $g^b_{ij}$.
 \subsection{ILP formulation}
 
 \bibliographystyle{plain}
