@@ -139,9 +139,38 @@ The input to the HI problem is the genotype data of $m$ individuals with the gen
 The objective is to find a pair of haplotype vectors for each of the $m$ genotypes such that the two haplotype vectors yield exactly the genotype vector.
 That is, for each genotype vector $g$ find a pair of haplotype vectors $(h, h')$ such that $g$ corresponds to $(h, h')$.
 The Haplotype Inference by Pure Parsimony (HIPP) sets another constraint on this problem, namely that the set of distinct haplotype vectors used should be as small as possible.
-This condition has been experimentally validated to yield relatively accurate haplotype data.
+This condition has been experimentally validated to yield relatively accurate haplotype data~\cite{DBLP:journals/bioinformatics/WangX03a}.
+
+The HIPP problem was shown by Lancia et al to be APX-hard~\cite{DBLP:journals/informs/LanciaPR04}.
+
+In the following we present two solutions for the HIPP problem: a SAT encoding by Lynce and Marques-Silva~\cite{DBLP:conf/aaai/LynceM06} and an ILP formulation by Gusfield~\cite{DBLP:conf/cpm/Gusfield03}.
 
 \subsection{SAT formulation}
+
+Denote by $\mathcal{G}=\{g_i\mid 1\leq i \leq n\}$ a set of $n$ genotype vectors of length $m$ and by $g_{ij}$ the $j$'th entry of genotype vector $g_i$.
+We construct a propositional formula $\phi (\mathcal{G}, r)$ which is satisfiable if and only if there exists a set of haplotypes $\mathcal{H}$ of size $r$ such that each genotype $g_i\in \mathcal{G}$ is explained by some pair fo haplotypes $(h_j, h_k)$ in $\mathcal{H}$.
+To solve the HIPP problem the satisfiability of $\phi (\mathcal{G}, r)$ is checked for increasing values of $r$ until a value is found such that $\phi (\mathcal{G}, r)$ is satisfiable but $\phi (\mathcal{G}, r-1)$ is not.
+This value of $r$ is then the minimum number of haplotypes required, and the actual haplotypes can be extracted from the satisfying assignment to $\phi (\mathcal{G}, r)$.
+
+The formula $\phi (\mathcal{G}, r)$ considers a set of $r$ distinct haplotypes $h_k$ and encodes the assignment of a pair $(h_{k_1}, h_{k_2})$ to each $g_i$ using Boolean variables $s^a_{k_1i}$ and $s^b_{k_2i}$.
+That is, variables $s^a_{k_1i}$ and $s^b_{k_2i}$ being set true indicates that $(h_{k_1}, h_{k_2})$ is the pair of haplotypes assigned to genotype $g_i$.
+The formula then requires two types of constraints
+\begin{enumerate}
+\item[(i)] The selector variable $s^a_{ki}$ should select a unique haplotype, i.e., for each genotype $g_i$ exactly one variable $s^a_{ki}$ should be set true (and similarly for $s^b_{ki}$). 
+\item[(ii)] Each genotype $g_i$ should be explained by its selected pair of haplotypes $(h_{k_1}, h_{k_2})$. 
+\end{enumerate}
+
+Constraint (i) corresponds to equations $\sum_{1\leq k\leq r} s^a_{ki} = 1$ and $\sum_{1\leq k\leq r} s^b_{ki} = 1$ holding for all $i$ such that $1\leq i \leq n$.
+This constraint is enforced in $\phi (\mathcal{R}, r)$ utilizing a propositional encoding of an \emph{1-bit adder circuit}.
+The adder circuit uses variables $v^a_{ki}$ where $1\leq k \leq r$ and $1\leq i\leq n$ and the following constraints (the ones for $s^b_{ki}$ are similar).
+\begin{eqnarray}
+\forall i\text{ such that } 1\leq i\leq n: & v^a_{1i} \leftrightarrow s^a_{1i}\label{hipp-sat:clause1}\\
+\forall k, i\text{ such that } 1\leq k \leq r,\ 1\leq i\leq n: & \neg v^a_{ki} \vee \neg s^a_{ki}\label{hipp-sat:clause2}\\
+\forall k, i\text{ such that } 1\leq k \leq r,\ 1\leq i\leq n: & v^a_{(k+1)i} \leftrightarrow (s^a_{ki}\vee v^a_{ki} )\label{hipp-sat:clause3}\\
+\forall i\text{ such that } 1\leq i\leq n: & v^a_{1i} \leftrightarrow s^a_{1i}\label{hipp-sat:clause4}
+\end{eqnarray}
+
+
 
 \subsection{ILP formulation}
 
