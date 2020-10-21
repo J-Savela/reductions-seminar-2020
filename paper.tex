@@ -98,14 +98,6 @@ ILPs can be solved via a \emph{branch-and-bound} procedure in which the simplex 
 Branch-and-bound procedure utilizing cutting planes, i.e., \emph{branch-and-cut}, uses auxiliary constraints to prune away non-integral solutions~\cite{DBLP:books/ph/PapadimitriouS82}.
 
 
-\section{Protein folding}
-
-
-\subsection{SAT formulation}
-
-\subsection{ILP formulation}
-
-
 \section{Haplotype inference}
 The human genetic information is contained in the double-stranded DNA molecules consisting of a linear sequence of 4 bases (\textbf{A}denosine, \textbf{C}ytosine, \textbf{G}uanine, \textbf{T}hymine) in the phosphate-deoxyribose backbone.
 The dna molecules, which are packed into chromosomes, consist of protein-coding intervals, which are called genes, and other non-coding parts.
@@ -131,8 +123,9 @@ The pair of haplotype vectors $(h, h')$ corresponds to genotype $g$ if
 \item $h_i=h'_i=1$ whenever $g_i = 1$, and
 \item $h_i \neq h'_i$ whenever $g_i = 2$.
 \end{itemize}
-The haplotype $(01011, 00001)$, for example, corresponds to the genotype $02021$.
+The haplotype pair $(01011, 00001)$, for example, corresponds to the genotype $02021$.
 Note that there can be several distinct pairs of haplotype vectors for each genotype.
+In fact the number of different haplotype pairs for $g$ is $2^{k-1}$, where $k$ is the number of heterozygous loci, i.e., the number of 2s in the string.
 For example the genotype $02021$ corresponds also to the pair $(00011, 01001)$.
 
 The input to the HI problem is the genotype data of $m$ individuals with the genotype vectors being all of length $n$.
@@ -191,7 +184,118 @@ If $g_{ij}$ is 2, then the $j$'th entry of the haplotypes should differ.
 Variables $g^a_{ij}$ and $g^b_{ij}$ are used to decide which haplotype should be assigned 0 and which should be assigned 1.
 The clauses $(g^a_{ij}\vee g^b_{ij})\wedge(\neg g^a_{ij}\vee \neg g^b_{ij})$ enforce $g^a_{ij}$ and $g^b_{ij}$ to take on different values.
 The constraints $s^a_{ki}\rightarrow (h_{kj}\leftrightarrow g^a_{ij})$ and $s^b_{ki}\rightarrow (h_{kj}\leftrightarrow g^b_{ij})$ then enforce the selected haplotypes to take on values dictated by $g^a_{ij}$ and $g^b_{ij}$.
-\subsection{ILP formulation}
+\subsection{ILP formulations}
+We explain here two different formulations of the HIPP problem, RTIP~\cite{DBLP:conf/cpm/Gusfield03} and PolyIP~\cite{DBLP:journals/tcbb/BrownH06}.
+RTIP is an exponential-size encoding formulated and empirically evaluated by Gusfield in~\cite{DBLP:conf/cpm/Gusfield03}.
+Similar polynomial-size encodings were simultaneously and independently formulated~\cite{DBLP:journals/tcbb/BrownH06, DBLP:conf/recomb/HalldorssonBELYI02, DBLP:journals/informs/LanciaPR04}.
+Out of the polynomial size encodings we showcase PolyIP which is formulated by Brown and Harrower~\cite{DBLP:journals/tcbb/BrownH06}.
+
+\subsubsection{RTIP}
+
+The RTIP encoding contains variables representing the individual haplotype vectors as well as ones representing certain pairs of haplotype vectors (which correspond to a certain genotype).
+Denote by $k_i$ the numbers of heterozygous loci (i.e., number of 2s in the vector) in genotype $g_i$.
+Now there are $2^{k_i-1}$ distinct haplotype pairs corresponding to genotype $g_i$.
+Denote by $L$ the number of distinct haplotypes appearing in the haplotype pairs of all $g_i\in\mathcal{G}$.
+The encoding contains variables $y_{i,j}$ where $1\leq j \leq 2^{k-1}$ representing each of the possible haplotype pairs corresponding to $g_i$.
+Similarly, each of the individual haplotype vectors appearing in the pairs is assigned a variable $x_l$.
+Both the $y_{i,j}$ and $x_l$ variables are restricted to the range $[0,1]$, i.e. they may take only two distinct values, 0 or 1 (since only integer solutions are sought).
+Setting $y_{i,j}$ to 1 indicates that $g_i$ is resolved using haplotype pair $p_j$ whereas 
+setting $x_l$ to 1 indicates that haplotype $h_l$ is being used in some pair to resolve a genotype.
+The constraint
+$$ \text{for all  }i\in\{1,\dots , n\}:\quad \sum_{1\leq j \leq 2^{k_i-1}} y_{i,j} = 1 $$
+ensures that each genotype is resolved by exactly one haplotype pair $p_j$.
+Denote the haplotypes in pair $p_j$ by $h_{l(j,a)}$ and $h_{l(j,b)}$.
+To ensure that the haplotypes of a used pair are marked used the encoding contains the following inequalities for all $i$ ($1\leq i \leq n$) and $j$ ($1\leq j \leq 2^{k_i-1}$).
+\begin{eqnarray*}
+y_{i,j} - x_{l(j,a)} & \leq & 0 \\
+y_{i,j} - x_{l(j,b)} & \leq & 0 \\
+\end{eqnarray*}
+The objective of RTIP is to minize the number of used haplotypes, i.e., $\sum_{1\leq l \leq L} x_l$.
+The entire encoding is presented in Figure~\ref{fig:enc-rtip}.
+
+\begin{figure}
+\centering
+Minimize $\sum_{1\leq l \leq L} x_l$
+\begin{align}
+\text{for all  }i\in\{1,\dots , n\}:&\quad \sum_{1\leq j \leq 2^{k_i-1}} y_{i,j} = 1 \\
+\text{for all  }i\in\{1,\dots , n\}, j\in\{1,\dots , 2^{k_i-1}\}:& \quad y_{i,j} - x_{l(j,a)}  \leq  0 \\
+\text{for all  }i\in\{1,\dots , n\}, j\in\{1,\dots , 2^{k_i-1}\}:&\quad y_{i,j} - x_{l(j,b)}  \leq  0 \\
+\text{for all  }l\in\{1,\dots , L\}:&\quad x_l \in \{0,1\} \\
+\text{for all  }i\in\{1,\dots , n\}, j\in\{1,\dots , 2^{k_i-1}\}:&\quad y_{i,j} \in \{0,1\} 
+\end{align}
+\caption{The RTIP encoding.}
+\label{fig:enc-rtip}
+\end{figure}
+
+The RTIP encoding is of exponential size in the worst case since  the number of $y_{i,j}$ variables is exponential with respect to the number of $2$s in the genotype vectors.
+This restricts the usability of this encoding to very small problem instances.
+Gusfield, however, shows that two optimizations significantly reduce the size of the encoding making it usable for instance sizes of practical interest.
+
+The first optimization reduces the number of $y_{i,j}$ and $x_l$ variables used in the encoding.
+Let $p_j=(h_{l(j,a)}, h_{l(j,b)})$ be a haplotype pair corresponding to genotype $g_i$.
+If neither $h_{l(j,a)}$ nor $h_{l(j,b)}$ appears in any other haplotype pair (for any genotype of the input), 
+then pair $p_j$ is excluded from the encoding, i.e., 
+variables $y_{i,j}$, $x_{l(j,a)}$ and $x_{l(j,b)}$ are not included in the encoding.
+In the case that no haplotype pair remains for $g_i$, an optimal solution to the original problem can be constructed from an optimal solution to the reduced problem by choosing an arbitrary pair for $g_i$ which is bound to increase cost by 2.
+In the case that $g_i$ does have haplotype pairs remaining, an optimal solution to the reduced problem will correspond to an optimal solution of the original problem with the excluded $y$ and $x$ variables set to $0$.
+
+The second optimization concerns the construction of the encoding.
+Enumerating all of the $y$ and $x$ variables and removing the unnecessary ones in line with the first optimization still incurs the cost of generating all potential $y$ and $x$ variables which can become a bottleneck.
+This can be mitigated by generating only the haplotypes from intersections as follows.
+We denote the set of haplotypes in the potential haplotype pairs of $g_i$ by $H_i$.
+The idea is to let $(i,i')$ range over the possible pairs of genotype indices and generate variables for haplotypes in intersections $H_i\cap H_{i'}$.
+This suffices to generate all the variables for haplotypes and pairs of haplotypes in the reduced form of RTIP since exactly the haplotypes appearing in at least two haplotype pairs are included.
+
+Let $g_1$ and $g_2$ be two genotypes whose sets of potential haplotypes are $H_1$ and $H_2$.
+To generate the variables for haplotypes ($x_l$) and haplotype pairs ($y_{i,j}$) in the intersection $H_1\cap H_2$ we iterate over the length of the genotype vectors $g_1$ and $g_2$.
+If an index is encountered at which $g_1$ has a 0 and $g_2$ a 1 (or vice versa) the intersection $H_1\cap H_2$ must be empty.
+Whenever the other entry is 2 and the other one 0 (or 1) we know that all haplotypes in the intersection must contain a 0 (or 1) in this location.
+If, on the other hand, an index is found where both $g_1$ and $g_2$ contain a 2, the intersection must contain haplotypes differing at this index.
+The indices at which both $g_1$ and $g_2$ have entry 2 are recorded and the haplotypes with every possible combination of $0/1$ at these indices are generated along with the $x$ variables for these haplotypes.
+Since each one of these haplotypes has a unique pair the $y$ variables can be simultaneously generated.
+
+\subsubsection{PolyIP}
+In this subsection we present the PolyIP encoding for HIPP as detailed by Brown and Harrower~\cite{DBLP:journals/tcbb/BrownH06}.
+The exponential size of the RTIP encoding results from the fact that the haplotypes and pairs thereof are explicitly generated and the ILP encoding has no access to the internal structure of these haplotypes.
+That is, the representation of haplotypes in RTIP is atomic.
+A polynomial size encoding can be formulated for the HIPP problem by using a structured representation for the haplotypes, i.e., allowing the ILP encoding access to the internal structure of the haplotypes.
+
+Again let $\mathcal{G}=\{g_i\mid 1\leq i \leq n\}$ be a set of $n$ genotype vectors of length $m$ and denote by $g_{i,j}$ the $j$'th entry of genotype vector $g_i$.
+Brown and Harrower use a slightly different notation for the genotype vectors to facilitate the formulation of the ILP encoding.
+Namely, the interpretation of the entries of the genotype vectors are different.
+In Brown and Harrower's notation an entry of 0 denotes a homozygous location with allele 0 and 2 denotes a homozygous location with allele 1 whereas 
+an entry of 1 in the genotype vector denotes a heterozygous location.
+The benefit of this notation is that now the elementwise sum of a pair of haplotypes is their corresponding genotype, i.e., $g_{i,k} = h_{j, k} + h_{l, k}$ for all $k\in\{1,\dots ,m\}$ iff genotype $g_i$ corresponds to pair of haplotypes $(h_{j}, h_{l})$.
+
+The PolyIP encoding models the $2n$ haplotypes $h_i$, using $2nm$ binary variables $h_{i,j}$ where $1\leq i \leq 2n$ and $1\leq j \leq m$.
+The haplotypes $h_{2i}$ and $h_{2i-1}$ are constrained by the encoding to correspond to genotype $g_i$ by including for each $i\in\{1, \dots , n\}$ and each $j\in\{1,\dots ,m\}$ the constraint
+$$ h_{2i,j} + h_{2i-1,j} = g_{i,j}. $$
+The encoding contains binary variables $d_{i,j}$ where $1\leq i,j\leq 2n$ to detect whether $h_i$ and $h_j$ are different.
+The constraints 
+$$ \text{for all }k\in\{1,\dots ,m\}:\quad  d_{i,j} \geq h_{i,k}-h_{j,k} $$
+and
+$$ \text{for all }k\in\{1,\dots ,m\}:\quad  d_{i,j} \geq h_{j,k}-h_{i,k} $$
+ensure that $d_{i,j}$ is set to 1 whenever $h_i\neq h_j$.
+
+To compute the number of distinct haplotypes in the collection of $2n$ haplotypes variables $x_i$ with $1\leq i\leq 2n$ are included.
+The constraints
+$$ \text{for all }i\in\{1,\dots ,2n\}:\quad  x_{i} \geq 2 - i \sum_{j=1}^{i-1} d_{i,j} $$
+ensure that $x_i$ is set to 1 whenever haplotype $h_i$ is distinct from haplotypes $h_1,\dots , h_{i-1}$.
+The sum $\sum_{1\leq i\leq 2n} x_i$ then corresponds to the number of distinct haplotypes used.
+The objective of the encoding is therefore to minimize $\sum_{1\leq i\leq 2n} x_i$.
+The PolyIP encoding is presented in Figure~\ref{fig:enc-polyip}.
+
+\begin{figure}
+\centering
+Minimize $\sum_{1\leq i \leq 2n} x_i$
+\begin{align}
+\text{for all  }i\in\{1,\dots , n\}:&\quad \sum_{1\leq j \leq 2^{k_i-1}} y_{i,j} = 1 \\
+\end{align}
+\caption{The PolyIP encoding.}
+\label{fig:enc-polyip}
+\end{figure}
+
+
 
 \bibliographystyle{plain}
 \bibliography{paper.bib}
