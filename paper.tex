@@ -184,6 +184,35 @@ If $g_{ij}$ is 2, then the $j$'th entry of the haplotypes should differ.
 Variables $g^a_{ij}$ and $g^b_{ij}$ are used to decide which haplotype should be assigned 0 and which should be assigned 1.
 The clauses $(g^a_{ij}\vee g^b_{ij})\wedge(\neg g^a_{ij}\vee \neg g^b_{ij})$ enforce $g^a_{ij}$ and $g^b_{ij}$ to take on different values.
 The constraints $s^a_{ki}\rightarrow (h_{kj}\leftrightarrow g^a_{ij})$ and $s^b_{ki}\rightarrow (h_{kj}\leftrightarrow g^b_{ij})$ then enforce the selected haplotypes to take on values dictated by $g^a_{ij}$ and $g^b_{ij}$.
+
+
+\begin{figure}
+\centering
+\small
+\begin{align}
+\text{for all  }& i\in\{1,\dots , n\}:\nonumber\\
+& \quad\quad\quad\quad \sum_{1\leq k \leq r} s^a_{k,i} \\
+& \quad\quad\quad\quad \sum_{1\leq k \leq r} s^b_{k,i} \\
+\text{for all  }& i\in\{1,\dots , n\},\ k\in\{1,\dots r\}\text{ and }\nonumber\\&\quad\quad j\in\{1,\dots ,m\} \text{ such that }g_{i,j}=0:\nonumber\\
+& \quad\quad\quad\quad s^a_{k,i}\rightarrow \neg h_{k,j} \\
+& \quad\quad\quad\quad s^b_{k,i}\rightarrow \neg h_{k,j} \\
+\text{for all  }& i\in\{1,\dots , n\},\ k\in\{1,\dots r\}\text{ and }\nonumber\\&\quad\quad j\in\{1,\dots ,m\} \text{ such that }g_{i,j}=1:\nonumber\\
+& \quad\quad\quad\quad s^a_{k,i}\rightarrow h_{k,j} \\
+& \quad\quad\quad\quad s^b_{k,i}\rightarrow h_{k,j} \\
+\text{for all  }& i\in\{1,\dots , n\},\ k\in\{1,\dots r\}\text{ and }\nonumber\\&\quad\quad j\in\{1,\dots ,m\} \text{ such that }g_{i,j}=2:\nonumber\\
+& \quad\quad\quad\quad g^a_{i,j}\vee g^b_{i,j} \\
+& \quad\quad\quad\quad \neg g^a_{i,j}\vee \neg g^b_{i,j} \\
+& \quad\quad\quad\quad s^a_{k,i}\rightarrow (h_{k,j}\leftrightarrow g^a_{i,j}) \\
+& \quad\quad\quad\quad s^b_{k,i}\rightarrow (h_{k,j}\leftrightarrow g^b_{i,j}) \\
+\end{align}
+\caption{The HIPP-SAT encoding.}
+\label{fig:enc-hipp-sat}
+\end{figure}
+
+The encoding is presented in Figure~\ref{fig:enc-hipp-sat}.
+
+To 
+
 \subsection{ILP formulations}
 We explain here two different formulations of the HIPP problem, RTIP~\cite{DBLP:conf/cpm/Gusfield03} and PolyIP~\cite{DBLP:journals/tcbb/BrownH06}.
 RTIP is an exponential-size encoding formulated and empirically evaluated by Gusfield in~\cite{DBLP:conf/cpm/Gusfield03}.
