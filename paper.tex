@@ -140,59 +140,57 @@ In the following we present two solutions for the HIPP problem: a SAT encoding b
 
 \subsection{SAT formulation}
 
-Denote by $\mathcal{G}=\{g_i\mid 1\leq i \leq n\}$ a set of $n$ genotype vectors of length $m$ and by $g_{ij}$ the $j$'th entry of genotype vector $g_i$.
+Denote by $\mathcal{G}=\{g_i\mid 1\leq i \leq n\}$ a set of $n$ genotype vectors of length $m$ and by $g_{i,j}$ the $j$'th entry of genotype vector $g_i$.
 We construct a propositional formula $\phi (\mathcal{G}, r)$ which is satisfiable if and only if there exists a set of haplotypes $\mathcal{H}$ of size $r$ such that each genotype $g_i\in \mathcal{G}$ is explained by some pair fo haplotypes $(h_j, h_k)$ in $\mathcal{H}$.
 To solve the HIPP problem the satisfiability of $\phi (\mathcal{G}, r)$ is checked for increasing values of $r$ until a value is found such that $\phi (\mathcal{G}, r)$ is satisfiable but $\phi (\mathcal{G}, r-1)$ is not.
 This value of $r$ is then the minimum number of haplotypes required, and the actual haplotypes can be extracted from the satisfying assignment to $\phi (\mathcal{G}, r)$.
 
-The formula $\phi (\mathcal{G}, r)$ considers a set of $r$ distinct haplotypes $h_k$ and encodes the assignment of a pair $(h_{k_1}, h_{k_2})$ to each $g_i$ using Boolean variables $s^a_{k_1i}$, $s^b_{k_2i}$ and $h_{kj}$.
-That is, variables $s^a_{k_1i}$ and $s^b_{k_2i}$ being set true indicates that $(h_{k_1}, h_{k_2})$ is the pair of haplotypes assigned to genotype $g_i$.
-The variable $h_{kj}$ is the $j$'th entry of haplotype $h_k$.
+The formula $\phi (\mathcal{G}, r)$ considers a set of $r$ distinct haplotypes $h_k$ and encodes the assignment of a pair $(h_{k_1}, h_{k_2})$ to each $g_i$ using Boolean variables $s^a_{k_1,i}$, $s^b_{k_2,i}$ and $h_{k,j}$.
+That is, variables $s^a_{k_1,i}$ and $s^b_{k_2,i}$ being set true indicates that $(h_{k_1}, h_{k_2})$ is the pair of haplotypes assigned to genotype $g_i$.
+The variable $h_{k,j}$ is the $j$'th entry of haplotype $h_k$.
 The formula then requires two types of constraints
 \begin{enumerate}
-\item[(i)] The selector variable $s^a_{ki}$ should select a unique haplotype, i.e., for each genotype $g_i$ exactly one variable $s^a_{ki}$ should be set true (and similarly for $s^b_{ki}$). 
+\item[(i)] The selector variable $s^a_{k,i}$ should select a unique haplotype, i.e., for each genotype $g_i$ exactly one variable $s^a_{k,i}$ should be set true (and similarly for $s^b_{k,i}$). 
 \item[(ii)] Each genotype $g_i$ should be explained by its selected pair of haplotypes $(h_{k_1}, h_{k_2})$. 
 \end{enumerate}
 
-Constraint (i) corresponds to equations $\sum_{1\leq k\leq r} s^a_{ki} = 1$ and $\sum_{1\leq k\leq r} s^b_{ki} = 1$ holding for all $i$ such that $1\leq i \leq n$.
+Constraint (i) corresponds to equations $\sum_{1\leq k\leq r} s^a_{k,i} = 1$ and $\sum_{1\leq k\leq r} s^b_{k,i} = 1$ holding for all $i$ such that $1\leq i \leq n$.
 This constraint is enforced in $\phi (\mathcal{R}, r)$ utilizing a propositional encoding of an \emph{1-bit adder circuit}.
-The adder circuit uses variables $v^a_{ki}$ where $1\leq k \leq r+1$ and $1\leq i\leq n$ and the following constraints (the ones for $s^b_{ki}$ are similar).
+The adder circuit uses variables $v^a_{ki}$ where $1\leq k \leq r+1$ and $1\leq i\leq n$ and the following constraints (the ones for $s^b_{k,i}$ are similar).
 \begin{eqnarray}
-\forall i\text{ such that } 1\leq i\leq n: & v^a_{1i} \leftrightarrow s^a_{1i}\label{hipp-sat:clause1}\\
-\forall k, i\text{ such that } 1\leq k \leq r,\ 1\leq i\leq n: & \neg v^a_{ki} \vee \neg s^a_{ki}\label{hipp-sat:clause2}\\
-\forall k, i\text{ such that } 1\leq k \leq r,\ 1\leq i\leq n: & v^a_{(k+1)i} \leftrightarrow (s^a_{ki}\vee v^a_{ki} )\label{hipp-sat:clause3}\\
-\forall i\text{ such that } 1\leq i\leq n: & v^a_{(r+1)i}=1\label{hipp-sat:clause4}
+\forall i\text{ such that } 1\leq i\leq n: & v^a_{1,i} \leftrightarrow s^a_{1,i}\label{hipp-sat:clause1}\\
+\forall k, i\text{ such that } 1\leq k \leq r,\ 1\leq i\leq n: & \neg v^a_{k,i} \vee \neg s^a_{k,i}\label{hipp-sat:clause2}\\
+\forall k, i\text{ such that } 1\leq k \leq r,\ 1\leq i\leq n: & v^a_{k+1,i} \leftrightarrow (s^a_{k,i}\vee v^a_{k,i} )\label{hipp-sat:clause3}\\
+\forall i\text{ such that } 1\leq i\leq n: & v^a_{r+1,i}=1\label{hipp-sat:clause4}
 \end{eqnarray}
-Constraint \eqref{hipp-sat:clause1} enforces $v^a_{1i}$ and $s^a_{1i}$ to take on the same value in every satisfying assignment whereas constraint \eqref{hipp-sat:clause4} enforces variable $v^a_{(r+1)i}$ to be evaluated to true.
-Constraint \eqref{hipp-sat:clause2} prevents $v^a_{ki}$ and $s^a_{ki}$ from being simultaneously assigned true, 
-and constraint \eqref{hipp-sat:clause3} sets $v^a_{(k+1)i}$ to 1 whenever either $s^a_{ki}$ or $v^a_{ki}$ is assigned 1.
+Constraint \eqref{hipp-sat:clause1} enforces $v^a_{1,i}$ and $s^a_{1,i}$ to take on the same value in every satisfying assignment whereas constraint \eqref{hipp-sat:clause4} enforces variable $v^a_{r+1,i}$ to be evaluated to true.
+Constraint \eqref{hipp-sat:clause2} prevents $v^a_{k,i}$ and $s^a_{k,i}$ from being simultaneously assigned true, 
+and constraint \eqref{hipp-sat:clause3} sets $v^a_{k+1,i}$ to 1 whenever either $s^a_{k,i}$ or $v^a_{k,i}$ is assigned 1.
 
-It can be shown using induction that the variable $v^a_{ki}$ (for $k>1$) represents the disjunction $\bigvee_{1\leq h\leq k-1}s^a_{hi} = s^a_{1i}\vee\dots \vee s^a_{(k-1)i}$.
-From constraints \eqref{hipp-sat:clause1} and \eqref{hipp-sat:clause3} it follows that $v^a_{2i}$ is equivalent to $s^a_{1i}$.
+It can be shown using induction that the variable $v^a_{k,i}$ (for $k>1$) represents the disjunction $\bigvee_{1\leq h\leq k-1}s^a_{h,i} = s^a_{1,i}\vee\dots \vee s^a_{k-1,i}$.
+From constraints \eqref{hipp-sat:clause1} and \eqref{hipp-sat:clause3} it follows that $v^a_{2,i}$ is equivalent to $s^a_{1,i}$.
 Constraint \eqref{hipp-sat:clause3} also provides yields the proof of the inductive step.
-Thus, constraint \eqref{hipp-sat:clause4} which sets $v^a_{(r+1)i}=1$ ensures that at least one of $s^a_{1i},\dots , s^a_{ri}$ is set to 1.
-Furthermore, there can only be one $s^a_{ki}$ set to 1 due to the following reasoning.
-Since $v^a_{ki}$ is equivalent to $\bigvee_{1\leq h\leq k-1}s^a_{hi} = s^a_{1i}\vee\dots \vee s^a_{(k-1)i}$ it follows that $v^a_{ki}$ being set 1 enforces all $v^a_{hi}$ to be set 1 for $h>k$.
-Now assume there are two indices $h$ and $h'$ ($h<h'$) such that both $s^a_{hi}$ and $s^a_{h'i}$ are assigned true.
-By the previous observation $v^a_{h'i}$ is also assigned true which violates constraint \eqref{hipp-sat:clause2}.
+Thus, constraint \eqref{hipp-sat:clause4} which sets $v^a_{r+1,i}=1$ ensures that at least one of $s^a_{1,i},\dots , s^a_{r,i}$ is set to 1.
+Furthermore, there can only be one $s^a_{k,i}$ set to 1 due to the following reasoning.
+Since $v^a_{k,i}$ is equivalent to $\bigvee_{1\leq h\leq k-1}s^a_{h,i} = s^a_{1,i}\vee\dots \vee s^a_{k-1,i}$ it follows that $v^a_{k,i}$ being set 1 enforces all $v^a_{h,i}$ to be set 1 for $h>k$.
+Now assume there are two indices $h$ and $h'$ ($h<h'$) such that both $s^a_{h,i}$ and $s^a_{h',i}$ are assigned true.
+By the previous observation $v^a_{h',i}$ is also assigned true which violates constraint \eqref{hipp-sat:clause2}.
 
 Next we formalize constraint (ii) stating that each genotype $g_i$ should be explained by its selected pair of haplotypes $(h_{k_1}, h_{k_2})$.
-If $g_{ij}$ (the $j$'th entry of $g_i$) is 0, then the $j$'th entries of the chosen haplotypes should also be 0.
-This is encoded by $s^a_{ki}\rightarrow\neg h_{kj}$ and $s^b_{ki}\rightarrow\neg h_{kj}$ for all $1\leq k \leq r$.
-Similarly, if $g_{ij}$ is 1, then the $j$'th entries of the chosen haplotypes should also be 1, which is encoded by $s^a_{ki}\rightarrow h_{kj}$ and $s^b_{ki}\rightarrow h_{kj}$ for all $1\leq k \leq r$.
-If $g_{ij}$ is 2, then the $j$'th entry of the haplotypes should differ.
-Variables $g^a_{ij}$ and $g^b_{ij}$ are used to decide which haplotype should be assigned 0 and which should be assigned 1.
-The clauses $(g^a_{ij}\vee g^b_{ij})\wedge(\neg g^a_{ij}\vee \neg g^b_{ij})$ enforce $g^a_{ij}$ and $g^b_{ij}$ to take on different values.
-The constraints $s^a_{ki}\rightarrow (h_{kj}\leftrightarrow g^a_{ij})$ and $s^b_{ki}\rightarrow (h_{kj}\leftrightarrow g^b_{ij})$ then enforce the selected haplotypes to take on values dictated by $g^a_{ij}$ and $g^b_{ij}$.
-
-
+If $g_{i,j}$ (the $j$'th entry of $g_i$) is 0, then the $j$'th entries of the chosen haplotypes should also be 0.
+This is encoded by $s^a_{k,i}\rightarrow\neg h_{k,j}$ and $s^b_{k,i}\rightarrow\neg h_{k,j}$ for all $1\leq k \leq r$.
+Similarly, if $g_{i,j}$ is 1, then the $j$'th entries of the chosen haplotypes should also be 1, which is encoded by $s^a_{k,i}\rightarrow h_{k,j}$ and $s^b_{k,i}\rightarrow h_{k,j}$ for all $1\leq k \leq r$.
+If $g_{i,j}$ is 2, then the $j$'th entry of the haplotypes should differ.
+Variables $g^a_{i,j}$ and $g^b_{i,j}$ are used to decide which haplotype should be assigned 0 and which should be assigned 1.
+The clauses $(g^a_{i,j}\vee g^b_{i,j})\wedge(\neg g^a_{i,j}\vee \neg g^b_{i,j})$ enforce $g^a_{i,j}$ and $g^b_{i,j}$ to take on different values.
+The constraints $s^a_{k,i}\rightarrow (h_{k,j}\leftrightarrow g^a_{i,j})$ and $s^b_{k,i}\rightarrow (h_{k,j}\leftrightarrow g^b_{i,j})$ then enforce the selected haplotypes to take on values dictated by $g^a_{i,j}$ and $g^b_{i,j}$.
 \begin{figure}
 \centering
 \small
 \begin{align}
 \text{for all  }& i\in\{1,\dots , n\}:\nonumber\\
-& \quad\quad\quad\quad \sum_{1\leq k \leq r} s^a_{k,i} \\
-& \quad\quad\quad\quad \sum_{1\leq k \leq r} s^b_{k,i} \\
+& \quad\quad\quad\quad \sum_{1\leq k \leq r} s^a_{k,i} = 1 \\
+& \quad\quad\quad\quad \sum_{1\leq k \leq r} s^b_{k,i} = 1 \\
 \text{for all  }& i\in\{1,\dots , n\},\ k\in\{1,\dots r\}\text{ and }\nonumber\\&\quad\quad j\in\{1,\dots ,m\} \text{ such that }g_{i,j}=0:\nonumber\\
 & \quad\quad\quad\quad s^a_{k,i}\rightarrow \neg h_{k,j} \\
 & \quad\quad\quad\quad s^b_{k,i}\rightarrow \neg h_{k,j} \\
@@ -205,13 +203,35 @@ The constraints $s^a_{ki}\rightarrow (h_{kj}\leftrightarrow g^a_{ij})$ and $s^b_
 & \quad\quad\quad\quad s^a_{k,i}\rightarrow (h_{k,j}\leftrightarrow g^a_{i,j}) \\
 & \quad\quad\quad\quad s^b_{k,i}\rightarrow (h_{k,j}\leftrightarrow g^b_{i,j}) \\
 \end{align}
-\caption{The HIPP-SAT encoding.}
+\caption{The plain HIPP-SAT encoding.}
 \label{fig:enc-hipp-sat}
 \end{figure}
-
 The encoding is presented in Figure~\ref{fig:enc-hipp-sat}.
 
-To 
+% TODO: optimizations incl. symmetry-breaking
+Lynce and Marques-Silva use two techniques to facilitate and speed up the use of their RTIP encoding~\cite{DBLP:conf/aaai/LynceM06}.
+There are symmetries present in the plain SAT encoding, but fortunately these symmetries can be dispatched by utilizing symmetry-breaking predicates.
+Since the usage of the encoding consists of calling $\phi (\mathcal{G}, r)$ with values of $r$ from some lower bound $lb$ up to $2n$ until the formula becomes satisfiable, the overall effort can be reduced by finding a large $lb$.
+The computation of lower bounds of $r$ are thus useful in speeding up SAT-based haplotype inference.
+
+Let $h$ and $h'$ be two concrete haplotype vectors.
+Assume that the valuation of $h_{k_1}$ is $h$, the valuation of $h_{k_2}$ is $h'$ and that $s_{k_1, i}^a$ and  $s_{k_2, i}^b$ are set true.
+This means that genotype $g_i$ is explained by haplotypes $h$ and $h'$.
+Another equivalent solution to the SAT encoding can be constructed from this one by swapping the roles of $h_{k_1}$ and $h_{k_2}$ as well as those of $s_{k_1, i}^a$ and  $s_{k_2, i}^b$.
+This is an example of a symmetry present in the plain formulation, 
+which can be broken by enforcing the used haplotype to be in lexicographic order.
+The ordering constraint should thus enforce that the for any valuation $v$ it holds that $v(h_1) < v(h_2) < \dots < v(h_r)$ where $v(h_i)$ is the binary string $v(h_{i,1})v(h_{i,2})\dots v(h_{i,n})$.
+Frisch et al~\cite{DBLP:conf/cp/FrischHKMW02} present ways of encoding these types of ordering constraints.
+Essentially constraints are added to the encoding that for each $i\in\{1,\dots ,r-1\}$ enforce that $v(h_i)$ is lexicographically less than $v(h_{i+1})$.
+
+To find a lower bound $lb$ Lynce and Marques-Silva construct an \emph{incompatibility graph} of the genotypes~\cite{DBLP:conf/aaai/LynceM06}.
+Two genotypes are \emph{incompatible} if there is a locus at which they are both homozygous but with different alleles.
+The incompatibility graph has a node for each genotype and an edge between two nodes if the corresponding genotypes are incompatible.
+Assume that a clique of size $k$ exists in the constructed incompatibility graph.
+Then at least $2k - \sigma$ haplotypes are required where $\sigma$ is the number of genotypes in the clique without heterozygous loci.
+The number $2k-\sigma$ can thus be taken as the lower bound $lb$ for $r$.
+Since finding the largest clique in a graph is NP-hard it can be more beneficial to find a maximal clique using greedy heuristics.
+
 
 \subsection{ILP formulations}
 We explain here two different formulations of the HIPP problem, RTIP~\cite{DBLP:conf/cpm/Gusfield03} and PolyIP~\cite{DBLP:journals/tcbb/BrownH06}.
@@ -225,7 +245,7 @@ The RTIP encoding contains variables representing the individual haplotype vecto
 Denote by $k_i$ the numbers of heterozygous loci (i.e., number of 2s in the vector) in genotype $g_i$.
 Now there are $2^{k_i-1}$ distinct haplotype pairs corresponding to genotype $g_i$.
 Denote by $L$ the number of distinct haplotypes appearing in the haplotype pairs of all $g_i\in\mathcal{G}$.
-The encoding contains variables $y_{i,j}$ where $1\leq j \leq 2^{k-1}$ representing each of the possible haplotype pairs corresponding to $g_i$.
+The encoding contains variables $y_{i,j}$ where $1\leq j \leq 2^{k_i-1}$ representing each of the possible haplotype pairs corresponding to $g_i$.
 Similarly, each of the individual haplotype vectors appearing in the pairs is assigned a variable $x_l$.
 Both the $y_{i,j}$ and $x_l$ variables are restricted to the range $[0,1]$, i.e. they may take only two distinct values, 0 or 1 (since only integer solutions are sought).
 Setting $y_{i,j}$ to 1 indicates that $g_i$ is resolved using haplotype pair $p_j$ whereas 
@@ -299,7 +319,7 @@ The benefit of this notation is that now the elementwise sum of a pair of haplot
 The PolyIP encoding models the $2n$ haplotypes $h_i$, using $2nm$ binary variables $h_{i,j}$ where $1\leq i \leq 2n$ and $1\leq j \leq m$.
 The haplotypes $h_{2i}$ and $h_{2i-1}$ are constrained by the encoding to correspond to genotype $g_i$ by including for each $i\in\{1, \dots , n\}$ and each $j\in\{1,\dots ,m\}$ the constraint
 $$ h_{2i,j} + h_{2i-1,j} = g_{i,j}. $$
-The encoding contains binary variables $d_{i,j}$ where $1\leq i,j\leq 2n$ to detect whether $h_i$ and $h_j$ are different.
+The encoding contains binary variables $d_{i,j}$ where $1\leq i<j\leq 2n$ to detect whether $h_i$ and $h_j$ are different.
 The constraints 
 $$ \text{for all }k\in\{1,\dots ,m\}:\quad  d_{i,j} \geq h_{i,k}-h_{j,k} $$
 and
@@ -318,12 +338,25 @@ The PolyIP encoding is presented in Figure~\ref{fig:enc-polyip}.
 \centering
 Minimize $\sum_{1\leq i \leq 2n} x_i$
 \begin{align}
-\text{for all  }i\in\{1,\dots , n\}:&\quad \sum_{1\leq j \leq 2^{k_i-1}} y_{i,j} = 1 \\
+\text{for all  }i\in\{1,\dots , n\},\ j\in\{1,\dots ,m\}:&\quad h_{2i,j} + h_{2i-1,j} = g_{i,j} \\
+\text{for all  }i, j\in\{1,\dots , 2n\},\text{ such that } i<j:&\quad d_{i,j} \geq h_{i,k}-h_{j,k} \\
+&\quad d_{i,j} \geq h_{j,k}-h_{i,k} \\
+\text{for all  }i\in\{1,\dots , 2n\}:&\quad x_{i} \geq 2 - i \sum_{j=1}^{i-1} d_{i,j} \\
+\text{for all  }i,j\in\{1,\dots , 2n\},\ k\in\{1,\dots ,m\}:&\quad x_i\in\{0,1\} \\
+&\quad h_{i,k}\in\{0,1\} \\
+&\quad d_{i,j}\in\{0,1\}
 \end{align}
 \caption{The PolyIP encoding.}
 \label{fig:enc-polyip}
 \end{figure}
 
+\section{Comparison}
+
+\begin{itemize}
+\item structure
+\item Size
+\item performance
+\end{itemize}
 
 
 \bibliographystyle{plain}
