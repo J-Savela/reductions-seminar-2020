@@ -53,7 +53,7 @@
 
 
 \sloppy
-\title{Comparing SAT and ILP formulations for Computational and Systems Biology problems}
+\title{Haplotype Inference via Boolean Satisfiability and Integer Linear Programming}
 \date{2020 Autumn}
 \author{Jarkko Savela}
 
@@ -66,9 +66,26 @@
 \pagenumbering{arabic}
 
 \section{Introduction}
+Haplotype inference is a crucial problem of modern genetics with wide-ranging applications in, e.g., correlating disease susceptibility to individuals' haplotypes.
+Due to technical difficulties the direct measurement of haplotypes is challenging, and current methods rely on indirectly inferring haplotypes from genotype data.
+
+In general there are a plethora of different haplotypes that can result in the same genotype, 
+which is why a criterion is needed to choose between the possibilities.
+Several criteria have been suggested such as perfect phylogeny as well as pure parsimony~\cite{gusfield2019integer}.
+The pure parsimony criterion has been experimentally validated to yield relatively accurate haplotypes.
+
+Different methods of solving the haplotype inference problem have also been suggested including customized branch-and-bound algorithms, integer linear programs (ILPs) as well as Boolean satisfiability (SAT) encodings and SAT-based methods utilizing pseudo-boolean optimization and answer-set programming.
+
+This report focuses on SAT and ILP formulations to the problem of haplotype inference by pure parsimony (HIPP) as presented by Lynce and Marques-Silva~\cite{DBLP:conf/aaai/LynceM06}, Gusfield~\cite{DBLP:conf/cpm/Gusfield03} as well as Brown and Harrower~\cite{DBLP:journals/tcbb/BrownH06}.
+We begin with a brief overview of Boolean satisfiability and integer linear programming in Sections~\ref{sec:sat} and~\ref{sec:ilp}, respectively.
+In Section~\ref{sec:hipp} we present the HIPP problem formally.
+Section~\ref{sec:hipp-sat} presents a SAT encoding whereas 
+Section~\ref{sec:ilp-hipp} presents two different ILP formulations. 
+
 
 
 \section{Boolean Satisfiability}
+\label{sec:sat}
 Boolean satisfiability~\cite{DBLP:series/faia/2009-185}, often referred to as the SAT problem, is the satisfiability problem of propositional logic.
 That is, the problem is to find an assignment $s$ that satisfies the input formula $\phi$.
 The formula $\phi$ is inductively constructed from propositional atoms (i.e., Boolean variables) and the usual connectives; conjunction $\wedge$, disjunction $\vee$, negation $\neg$, implication $\rightarrow$ and bi-implication $\leftrightarrow$.
@@ -88,6 +105,7 @@ The most efficient current SAT solvers are based on the \emph{conflict-driven cl
 
 
 \section{Integer Linear Programming}
+\label{sec:ilp}
 Integer linear programming (ILP) is the problem of finding an optimal assignment to a set of integer variables subject to constraints in the form of linear inequalities~\cite{DBLP:books/ph/PapadimitriouS82}.
 An ILP program thus consists of a vector of integer variables $\mathbf{x}$, a cost vector $\mathbf{c}$ as well as a matrix $A$ and vector $\mathbf{b}$ of coefficients with the goal of minimizing $\mathbf{c}^T \mathbf{x}$ under the constraints that $A\mathbf{x} \leq \mathbf{b}$.
 
@@ -99,6 +117,7 @@ Branch-and-bound procedure utilizing cutting planes, i.e., \emph{branch-and-cut}
 
 
 \section{Haplotype inference}
+\label{sec:hipp}
 The human genetic information is contained in the double-stranded DNA molecules consisting of a linear sequence of 4 bases (\textbf{A}denosine, \textbf{C}ytosine, \textbf{G}uanine, \textbf{T}hymine) in the phosphate-deoxyribose backbone.
 The dna molecules, which are packed into chromosomes, consist of protein-coding intervals, which are called genes, and other non-coding parts.
 Different variants of a gene are called alleles.
@@ -136,10 +155,10 @@ This condition has been experimentally validated to yield relatively accurate ha
 
 The HIPP problem was shown by Lancia et al to be APX-hard~\cite{DBLP:journals/informs/LanciaPR04}.
 
-In the following we present two solutions for the HIPP problem: a SAT encoding by Lynce and Marques-Silva~\cite{DBLP:conf/aaai/LynceM06} and an ILP formulation by Gusfield~\cite{DBLP:conf/cpm/Gusfield03}.
+In the following we present three solutions for the HIPP problem: a SAT encoding by Lynce and Marques-Silva~\cite{DBLP:conf/aaai/LynceM06} and ILP formulations by Gusfield~\cite{DBLP:conf/cpm/Gusfield03} and by Brown and Harrower~\cite{DBLP:journals/tcbb/BrownH06}.
 
-\subsection{SAT formulation}
-
+\section{SAT formulation}
+\label{sec:hipp-sat}
 Denote by $\mathcal{G}=\{g_i\mid 1\leq i \leq n\}$ a set of $n$ genotype vectors of length $m$ and by $g_{i,j}$ the $j$'th entry of genotype vector $g_i$.
 We construct a propositional formula $\phi (\mathcal{G}, r)$ which is satisfiable if and only if there exists a set of haplotypes $\mathcal{H}$ of size $r$ such that each genotype $g_i\in \mathcal{G}$ is explained by some pair fo haplotypes $(h_j, h_k)$ in $\mathcal{H}$.
 To solve the HIPP problem the satisfiability of $\phi (\mathcal{G}, r)$ is checked for increasing values of $r$ until a value is found such that $\phi (\mathcal{G}, r)$ is satisfiable but $\phi (\mathcal{G}, r-1)$ is not.
@@ -233,13 +252,14 @@ The number $2k-\sigma$ can thus be taken as the lower bound $lb$ for $r$.
 Since finding the largest clique in a graph is NP-hard it can be more beneficial to find a maximal clique using greedy heuristics.
 
 
-\subsection{ILP formulations}
+\section{ILP formulations}
+\label{sec:ilp-hipp}
 We explain here two different formulations of the HIPP problem, RTIP~\cite{DBLP:conf/cpm/Gusfield03} and PolyIP~\cite{DBLP:journals/tcbb/BrownH06}.
 RTIP is an exponential-size encoding formulated and empirically evaluated by Gusfield in~\cite{DBLP:conf/cpm/Gusfield03}.
 Similar polynomial-size encodings were simultaneously and independently formulated~\cite{DBLP:journals/tcbb/BrownH06, DBLP:conf/recomb/HalldorssonBELYI02, DBLP:journals/informs/LanciaPR04}.
 Out of the polynomial size encodings we showcase PolyIP which is formulated by Brown and Harrower~\cite{DBLP:journals/tcbb/BrownH06}.
 
-\subsubsection{RTIP}
+\subsection{RTIP}
 
 The RTIP encoding contains variables representing the individual haplotype vectors as well as ones representing certain pairs of haplotype vectors (which correspond to a certain genotype).
 Denote by $k_i$ the numbers of heterozygous loci (i.e., number of 2s in the vector) in genotype $g_i$.
@@ -303,7 +323,7 @@ If, on the other hand, an index is found where both $g_1$ and $g_2$ contain a 2,
 The indices at which both $g_1$ and $g_2$ have entry 2 are recorded and the haplotypes with every possible combination of $0/1$ at these indices are generated along with the $x$ variables for these haplotypes.
 Since each one of these haplotypes has a unique pair the $y$ variables can be simultaneously generated.
 
-\subsubsection{PolyIP}
+\subsection{PolyIP}
 In this subsection we present the PolyIP encoding for HIPP as detailed by Brown and Harrower~\cite{DBLP:journals/tcbb/BrownH06}.
 The exponential size of the RTIP encoding results from the fact that the haplotypes and pairs thereof are explicitly generated and the ILP encoding has no access to the internal structure of these haplotypes.
 That is, the representation of haplotypes in RTIP is atomic.
@@ -350,13 +370,46 @@ Minimize $\sum_{1\leq i \leq 2n} x_i$
 \label{fig:enc-polyip}
 \end{figure}
 
-\section{Comparison}
+Brown and Harrower additionally introduce optimizations to speed up solving the PolyIP formulation.
+They note that actually an optimal solution of PolyIP may allow some $d_{i,j}$ variables to be set to 1 even though both $h_i$ and $h_j$ are the same.  
+This results in the $y_{i,k}$ variables taking on fractional values in the LP relaxation of PolyIP degrading solving performance.
+They suggest two solutions: 1) slightly perturbing the objective function to bias the solver towards setting $d_{i,j}$ to 0, 
+and 2) adding constraints that enforce $d_{i,j}=0$ if $h_i=h_j$.
+Other optimizations suggested include problem specific \emph{cuts} based on the input data as well as transitivity constraints for the $d_{i,j}$ variables.
 
-\begin{itemize}
-\item structure
-\item Size
-\item performance
-\end{itemize}
+\section{Discussion}
+
+We have now presented three encodings for solving the HIPP problem, one SAT encoding (HIPP-SAT) and two ILP encodings (RTIP and PolyIP).
+These encoding differ both in terms of their structure as well as their size, performance and available optimizations.
+The HIPP-SAT and PolyIP encodings are structurally similar since they both utilize a structured representation of the haplotypes thus giving the solvers access to this representation.
+In contrast the RTIP encoding uses an atomic representation of the haplotypes and computes necessary information about the relationship of the haplotypes and genotypes in a pre-processing phase.
+
+This structural difference is reflected in the sizes of the encodings.
+Let $n$ be the number of genotypes and $m$ the number of loci.
+The size of HIPP-SAT (without symmetry-breaking predicates) is \TODO{???} whereas the sizes of PolyIP and RTIP are \TODO{??} and \TODO{??}, respectively.
+That is, HIPP-SAT and PolyIP have polynomial size whereas the size of RTIP scales exponentially.
+
+The RTIP encoding is relatively straightforward since part of the work is done in the pre-processing phase.
+Due to this fact the optimizations used for RTIP mostly concern the pre-processing phase.
+Gusfield~\cite{DBLP:conf/cpm/Gusfield03} explains how the number of haplotypes to unfold can be reduced and how the unfolding can be accomplished efficiently.
+The optimizations utilized in the HIPP-SAT and PolyIP formulations, on the other hand, modify the plain encoding itself by, e.g., including symmetry-breaking or transitivity constraints.
+
+Brown and Harrower note that their PolyIP encoding is not as fast as Gusfield's RTIP over instances that RTIP can solve~\cite{DBLP:journals/tcbb/BrownH06}.
+Their PolyIP formulation, however, scales to larger instances due to its polynomial size (as opposed to the exponential size of RTIP).
+Due to these observations Brown and Harrower also formulate a hybrid encoding \emph{HybridIP} that is a mix between PolyIP and RTIP, and which can solve instances fast and scales to larger instances than RTIP~\cite{DBLP:conf/cpm/Gusfield03}.
+Essentially the HybridIP uses a mixed representation for the haplotypes; 
+some haplotypes are unfolded and have atomic representation as in RTIP whereas other have a structured representation like that of PolyIP.
+However, the performance and scalability of SAT-based methods for HIPP (such as HIPP-SAT presented here) exceeds those of both PolyIP and RTIP~\cite{DBLP:journals/jcb/GracaLMO10}.
+
+
+In addition to the SAT and ILP encodings for the HIPP problem presented here, there are still other suggested algorithms and encodings proposed for the problem.
+In~\cite{DBLP:journals/jcb/GracaLMO10} Graca et al provide a survey of proposed methods for solving the HIPP problem.
+Wang and Xu, on the other hand, formulated a branch-and-bound algorithm~\cite{DBLP:journals/bioinformatics/WangX03a}.
+Graca et al~\cite{DBLP:journals/anor/GracaMLO11} propose and formulate methods utilizing \emph{pseudo-boolean optimization} 
+whereas Esra et al~\cite{DBLP:conf/lpnmr/ErdemET09} propose the use of \emph{answer-set programming} for solving the HIPP problem.
+In~\cite{DBLP:journals/jda/JagerCZ16} Jäger et al study a generalization of HIPP, namely the problem of generating all optimal solutions to the HIPP problem.
+
+
 
 
 \bibliographystyle{plain}
