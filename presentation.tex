@@ -100,12 +100,12 @@
 %	TITLE PAGE
 %----------------------------------------------------------------------------------------
 
-\title[]{SAT encodings for hard problems in computational biology} % The short title appears at the bottom of every slide, the full title is only on the title page
+\title[]{Comparing SAT and ILP for Haplotype Inference} % The short title appears at the bottom of every slide, the full title is only on the title page
 
 \author{Jarkko Savela} % Your name
 \institute{University of Helsinki} % Your institution as it will appear on the bottom of every slide, may be shorthand to save space
 \date{\today} % Date, can be changed to a custom date
-\bibliography{presentation}
+\bibliography{paper}
 \begin{document}
 
 \begin{frame}
@@ -136,7 +136,7 @@
 \item Protein folding under HP model
 \item Transforming gene orders by reversals
 \item Computing the history bound
-\item Haplotyping by pure parsimony
+\item \textbf{Haplotyping by pure parsimony}
 \end{enumerate}
 \item SAT solver used is pLingeling and Glucose, ILP solver Gurobi
 \item ILP was better for problem 1 with some exceptions
@@ -145,47 +145,250 @@
 \end{itemize}
 \end{frame}
 
+\section{Haplotype Inference by Pure Parsimony}
 \begin{frame}
-\frametitle{HP model}
+\frametitle{Haplotype Inference Problem}
 \begin{itemize}
-\item Proteins are linear chains of amino acids
-\item Each amino acid is hydrophilic (H) or hydrophobic (P)
-\item Hydrophilic amino acids form hydrogen bonds 
-\item Prototein is a binary sequence with 0 encoding P and 1 encoding H
-\item Problem: Embed a given prototein into a $2$-D (or $3$-D) grid
-\item Objective: maximize adjacent H's (i.e., hydrogen bonds)
+\item Genetic material composed of 4 bases (A, T, C, G)
+\item Humans are diploid: One copy of each chromosome inherited from each parent
+\item[$\rightarrow$] Two copies of each gene
+\item Assume two different alleles (0 and 1)
+\item Genotype represented as a string over $\{0,1,2\}$
+\begin{itemize}
+\item 0: both alleles are 0
+\item 1: both alleles are 1
+\item 2: one allele 0 and other allele 1
+\end{itemize}
+\item haplotype is string over $\{0,1\}$
+\item maternal haplotype $+$ paternal haplotype $=$ genotype
 \end{itemize}
 \end{frame}
 
 \begin{frame}
-\frametitle{SAT encoding}
 \begin{itemize}
-\item Binary sequence $S$, grid $G$
-\item Variables:
+\item Given a genotype, what are the haplotypes resolving into this genotype?
+\item Genotype 0021201 can be resolved into different pairs of haplotypes
 \begin{itemize}
-\item[$X_{i,j}$]: $S[i]$ is at position $j$ of $G$
-\item [$T_j$]: true iff a $1$ occupies position $j$ of $G$
-\item [$C_{j,m}$]: true iff both positions $j$ and $m$ are occupied by a $1$
+\item $\begin{matrix}
+0001001  \\\hline
+0011101 
+\end{matrix}$
+\item $\begin{matrix}
+0011001 \\\hline
+0001101 
+\end{matrix}$
 \end{itemize}
+\item Which one is the correct pair of haplotypes?
+\item Pure parsimony
+\item Experimentally validated to give relatively accurate results
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\begin{itemize}
+\item $\mathcal{G} = \{g_i\}$ a set of $n$ genotypes of length $m$.
+\end{itemize}
+\begin{block}{Haplotype Inference by Pure Parsimony (HIPP)}
+For each $g_i$ find a pair of haplotypes $(h_i, h'_i)$ that resolves into $g_i$ such that the total number of used haplotypes is minimized.
+\end{block}
+\begin{itemize}
+\item Can be solved by 
+\begin{itemize}
+\item Customized branch-and-bound algorithms
+\item Reductions to SAT, ILP, ASP, PBO \dots
+\end{itemize}
+\end{itemize}
+\end{frame}
+
+\section{SAT Encoding}
+
+\begin{frame}
+\frametitle{HIPP-SAT}
+\begin{itemize}
+\item Formulated by Lynce and Marques-Silva~\cite{DBLP:conf/aaai/LynceM06}
+\item High-level structure
+\begin{itemize}
+\item Boolean variables to represent haplotype strings
+\item Selector variables to select a haplotype pair for each genotype
+\end{itemize}
+\item Formula $\phi (\mathcal{G}, r)$ is SAT iff exists a set of $r$ haplotypes resolving all genotypes in $\mathcal{G}$
+\item Find the least $r$ such that $\phi (\mathcal{G}, r)$ is satisfied
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\begin{itemize}
+\item $h_{k,j}$ represents $j$'th entry of haplotype $h_k$
+$$ h_k = h_{k,1} h_{k,2} \dots h_{k,m-1} h_{k,m} $$
+\item $s^a_{k_1,i}$ and $s^b_{k_2, i}$ select the pair of haplotypes for genotype $i$
+\item If $s^a_{k_1,i}$ and $s^b_{k_2, i}$ evaluate to true, the haplotype pair for $g_i$ is $(h_{k_1}, h_{k_2})$
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Constraints}
+\begin{itemize}
+\item[1] The selector variables $s^a_{k_1,i}$ and $s^b_{k_2, i}$ must choose a unique pair of haplotypes
+$$ \sum_{1\leq k \leq r} s^a_{k,i} = 1 \text{ and } \sum_{1\leq k \leq r} s^b_{k,i} = 1 $$
+\item[2] The selected haplotype pair must resolve into the correct genotype
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\begin{itemize}
+\item Constraint 1 implemented using a \emph{1-bit adder circuit}
+\item Uses variables $v^a_{k, i}$
+\end{itemize}
+$$ \begin{array}{c|c|c|c|c|c|c}
+v^a_{1,i} & v^a_{2,i} & v^a_{3,i} & \dots & v^a_{r-1, i} & v^a_{r, i} & v^a_{r+1, i} \\\hline
+s^a_{1, i} & s^a_{2, i} & s^a_{3, i} & \dots & s^a_{r-1, i} & s^a_{r, i} & 
+\end{array} $$
+\begin{itemize}
 \item Constraints
-\begin{itemize}
-\item Each grid point has at most one sequence entry
-\item ech sequence entry is in exactly one grid point
-\item Adjacent sequence entries are adjacent in the grid
-\item + Machinery for counting number of contacts
+\begin{enumerate}
+\item $v^a_{1, i} \leftrightarrow s^a_{1,i}$
+\item $\neg v^a_{k,i} \vee \neg s^a_{k,i}$
+\item $ v^a_{k+1,i} \leftrightarrow (s^a_{k,i} \vee v^a_{k,i})$
+\item $ v^a_{r+1,i} = 1$
+\end{enumerate}
 \end{itemize}
-\item Optimization via binary search
-\item ILP achieved better runtimes but took long in some instances
-\item SAT had slightly longer runtimes but they performance was more consistent
+\end{frame}
+
+% TODO: Picture for next slide?
+\begin{frame}
+\begin{itemize}
+\item Three cases depending on $g_{i,j}$ ($j$'th entry of genotype $i$)
+\item If $g_{i,j} = 0$, both haplotypes must have 0 at index $j$
+$$ s^a_{k,i} \rightarrow \neg h_{k,j}\quad \text{ and }\quad s^b_{k,i} \rightarrow \neg h_{k,j} $$ 
+\item If $g_{i,j} = 1$, both haplotypes must have 1 at index $j$
+$$ s^a_{k,i} \rightarrow h_{k,j}\quad \text{ and }\quad s^b_{k,i} \rightarrow h_{k,j} $$
+\item If $g_{i,j} = 2$, the haplotypes must have different entries at $j$
+$$ (g^a_{i,j}\vee g^b_{i,j}) \wedge (\neg g^a_{i,j} \vee \neg g^b_{i,j}) $$
+$$ s^a_{k,i} \rightarrow (h_{k,j} \leftrightarrow g^a_{i,j}) $$
+$$ s^b_{k,i} \rightarrow (h_{k,j} \leftrightarrow g^b_{i,j}) $$
 \end{itemize}
 \end{frame}
 
 \begin{frame}
-\frametitle{Direction for my seminar report}
+\frametitle{Optimizations}
 \begin{itemize}
-\item More in-depth exploration of the use of SAT in computational and systems biology
-\item (+comparison with ILP)
+\item Computing lower bounds for $r$
+\item[$\rightarrow$] Can skip evaluating $\phi (\mathcal{G}, r)$ for $r < lb$
+\item Symmetry-breaking by ordering constraints
+\item lexicographically order the haplotypes $h_1$, $h_2$,\dots
 \end{itemize}
+\end{frame}
+
+\section{ILP encodings}
+
+\begin{frame}
+\frametitle{RTIP}
+\begin{itemize}
+\item Formulated by Gusfield~\cite{DBLP:conf/cpm/Gusfield03}
+\item Idea: unfold potential haplotype pairs and use ILP to choose a minimum-size set to explain genotypes
+\item $\mathcal{G} = \{g_i\}$ set of $n$ genotypes of length $m$
+\item Assign binary variable $x_i$ for each potential haplotype
+\item Haplotype $h_i$ is used iff $x_i = 1$
+\item Binary variable $y_{i,j}$ for each haplotype pair $p_j$
+\item $y_{i,j} = 1$ iff haplotype pair $p_j$ is used to explain genotype $g_i$ 
+\item Goal: Minimize $\displaystyle \sum_i x_i$
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Constraints}
+\begin{enumerate}
+\item Every genotype is explained by exactly one haplotype pair
+$$ \sum_{j} y_{i,j} = 1 $$
+\item If haplotype pair $p_j=(h_k, h_l)$ is used, then the haplotypes in the pair are used
+$$ y_{i,j} - x_k \leq 0 $$
+$$ y_{i,j} - x_l \leq 0 $$
+\item The $x$ and $y$ variables have binary domain
+$$ x_l\in \{0, 1\} $$
+$$ y_{i,j}\in \{0, 1\} $$
+\end{enumerate}
+\end{frame}
+
+\begin{frame}
+\frametitle{Constructing the encoding}
+\begin{itemize}
+\item For each genotype $g_i\in \mathcal{G}$:
+\item Generate all possible pairs of haplotypes $p_1, \dots , p_{k_i}$ explaining $g_i$
+\item For each pair $p_j$, include variable $y_{i,j}$
+\item For each haplotype $h_l$ not encountered earlier, include variable $x_l$
+\item If $g_i$ has $b$ heterozygous sites, then there are $2^{b-1}$ distinct pairs that explain $g_i$
+\item[$\rightarrow$] Exponential size
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{PolyIP}
+\begin{itemize}
+\item Formulated by Brown and Harrower~\cite{DBLP:journals/tcbb/BrownH06}
+\item Entries of genotype vectors non-standard
+\begin{itemize}
+\item 0: homozygous with allele 0
+\item 1: heterozygous
+\item 2: homozygous with allele 1
+\end{itemize}
+\item Now haplotype pair $(h, h')$ resolves genotype $g = h + h'$
+\item Idea
+\begin{itemize}
+\item Structured representation of haplotypes
+\item Machinery for counting distinct haplotypes
+\end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Constraints}
+\begin{itemize}
+\item Variable $h_{i,j}$ is the $j$'th entry of haplotype $h_i$
+\item Genotype $g_i$ is explained by haplotypes $h_{2i-1}$ and $h_{2i}$
+$$ h_{2i-1, j} + h_{2i, j} = g_{i, j} \quad \forall j $$
+\item Variable $d_{i,j}$ detects if $h_i$ and $h_j$ have a difference
+$$ d_{i,j} \geq h_{i, k} - h_{j,k} \quad \forall k $$
+$$ d_{i,j} \geq h_{j, k} - h_{i,k} \quad \forall k $$
+\item If $d_{i,j}=1$ haplotypes $h_i$ and $h_j$ differ
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\begin{itemize}
+\item Variable $x_i$ detects whether haplotype $h_i$ is the same as one of $h_1, \dots , h_{i-1}$
+$$ x_{i} \geq 2 - i +  \sum_{j=1}^{i-1} d_{i,j} $$
+\item If $x_i = 1$, then $h_i$ is a ``fresh'' entry
+\item All variables are binary
+$$ x_i \in \{0, 1\} $$
+$$ h_{i,j} \in \{0, 1\} $$
+$$ d_{i,j} \in \{0, 1\} $$
+\end{itemize}
+\end{frame}
+
+\section{Comparison}
+\begin{frame}
+\frametitle{Comparison}
+\begin{itemize}
+\item Size of encoding
+\begin{itemize}
+\item RTIP exponential
+\item HIPP-SAT and PolyIP polynomial
+\end{itemize}
+\item Representation of haplotypes
+\begin{itemize}
+\item RTIP uses atomic representation
+\item HIPP-SAT and PolyIP use structured representation
+\end{itemize}
+\item RTIP fast to solve, but does not scale to large instance
+\item PolyIP slower to solve, but scales better
+\item[$\rightarrow$] HybridIP by Brown and Harrower
+\item HIPP-SAT fastest and scales to largest instances
+\end{itemize}
+\end{frame}
+
+\begin{frame}{}
+\centering \LARGE \emph{Thank you for your attention!}
 \end{frame}
 
 \begin{frame}[allowframebreaks]

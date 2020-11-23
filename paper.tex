@@ -69,18 +69,18 @@
 Haplotype inference is a crucial problem of modern genetics with wide-ranging applications in, e.g., correlating disease susceptibility to individuals' haplotypes.
 Due to technical difficulties the direct measurement of haplotypes is challenging, and current methods rely on indirectly inferring haplotypes from genotype data.
 
-In general there are a plethora of different haplotypes that can result in the same genotype, 
-which is why a criterion is needed to choose between the possibilities.
+In general there are many different haplotypes that can result in the same genotype, 
+which is why a criterion is needed to choose between the possibilities when inferring haplotype from genotype.
 Several criteria have been suggested such as perfect phylogeny as well as pure parsimony~\cite{gusfield2019integer}.
 The pure parsimony criterion has been experimentally validated to yield relatively accurate haplotypes.
 
-Different methods of solving the haplotype inference problem have also been suggested including customized branch-and-bound algorithms, integer linear programs (ILPs) as well as Boolean satisfiability (SAT) encodings and SAT-based methods utilizing pseudo-boolean optimization and answer-set programming.
+Different methods of solving the haplotype inference problem have been suggested including customized branch-and-bound algorithms, integer linear programs (ILPs) as well as Boolean satisfiability (SAT) encodings and SAT-based methods utilizing pseudo-boolean optimization and answer-set programming.
 
 This report focuses on SAT and ILP formulations to the problem of haplotype inference by pure parsimony (HIPP) as presented by Lynce and Marques-Silva~\cite{DBLP:conf/aaai/LynceM06}, Gusfield~\cite{DBLP:conf/cpm/Gusfield03} as well as Brown and Harrower~\cite{DBLP:journals/tcbb/BrownH06}.
 We begin with a brief overview of Boolean satisfiability and integer linear programming in Sections~\ref{sec:sat} and~\ref{sec:ilp}, respectively.
 In Section~\ref{sec:hipp} we present the HIPP problem formally.
-Section~\ref{sec:hipp-sat} presents a SAT encoding whereas 
-Section~\ref{sec:ilp-hipp} presents two different ILP formulations. 
+Section~\ref{sec:hipp-sat} presents the SAT encoding whereas 
+Section~\ref{sec:ilp-hipp} presents the two different ILP formulations. 
 
 
 
@@ -107,7 +107,7 @@ The most efficient current SAT solvers are based on the \emph{conflict-driven cl
 \section{Integer Linear Programming}
 \label{sec:ilp}
 Integer linear programming (ILP) is the problem of finding an optimal assignment to a set of integer variables subject to constraints in the form of linear inequalities~\cite{DBLP:books/ph/PapadimitriouS82}.
-An ILP program thus consists of a vector of integer variables $\mathbf{x}$, a cost vector $\mathbf{c}$ as well as a matrix $A$ and vector $\mathbf{b}$ of coefficients with the goal of minimizing $\mathbf{c}^T \mathbf{x}$ under the constraints that $A\mathbf{x} \leq \mathbf{b}$.
+An ILP program thus consists of a vector of integer variables $\mathbf{x}$, a cost vector $\mathbf{c}$ as well as a matrix $A$ and vector $\mathbf{b}$ of coefficients with the goal of minimizing $\mathbf{c}^T \mathbf{x}$ under the constraint that $A\mathbf{x} \leq \mathbf{b}$.
 
 ILP is also an NP-hard problem~\cite{DBLP:conf/coco/Karp72} and finds applications in planning, scheduling, computational biology and in many other domains.
 
@@ -119,8 +119,8 @@ Branch-and-bound procedure utilizing cutting planes, i.e., \emph{branch-and-cut}
 \section{Haplotype inference}
 \label{sec:hipp}
 The human genetic information is contained in the double-stranded DNA molecules consisting of a linear sequence of 4 bases (\textbf{A}denosine, \textbf{C}ytosine, \textbf{G}uanine, \textbf{T}hymine) in the phosphate-deoxyribose backbone.
-The dna molecules, which are packed into chromosomes, consist of protein-coding intervals, which are called genes, and other non-coding parts.
-Different variants of a gene are called alleles.
+The DNA molecules, which are packed into \emph{chromosomes}, consist of protein-coding intervals, which are called genes, and other non-coding parts.
+Different variants of a gene are called \emph{alleles}.
 Humans are a \emph{diploid} species, which means that we have two copies of each chromosome (one from each parent).
 We thus have two alleles of each gene, and we are said to be \emph{homozygous} with regard to a gene if we have two identical alleles and \emph{heterozygous} otherwise.
 
@@ -134,8 +134,8 @@ Haplotype data has the potential to yield new insight into genetic predispositio
 The genotype data for the computational problem is represented as vectors over the alphabet $\{0, 1, 2\}$. 
 The values $0$ and $1$ indicate that the location in the diploid genotype is homozygous with allele $0$ or allele $1$, respectively, 
 whereas the value $2$ indicates that the location is heterozygous.
-The corresponding haplotype data then consists of a pair of vectors over the binary alphabet $\{0, 1\}$ with each pair corresponding to the haplotype inherited from each parent.
-Denote a genotype vector by $g=g_1\dots g_n$ and the haplotype vectors $h=h_1\dots h_n$ and $h'=h'_1\dots h'_n$.
+The corresponding haplotype data then consists of a pair of vectors over the binary alphabet $\{0, 1\}$ representing the maternal and paternal haplotypes.
+Denote a genotype vector by $g=g_1\dots g_m$ and the haplotype vectors $h=h_1\dots h_m$ and $h'=h'_1\dots h'_m$.
 The pair of haplotype vectors $(h, h')$ corresponds to genotype $g$ if 
 \begin{itemize}
 \item $h_i=h'_i=0$ whenever $g_i = 0$,
@@ -144,15 +144,15 @@ The pair of haplotype vectors $(h, h')$ corresponds to genotype $g$ if
 \end{itemize}
 The haplotype pair $(01011, 00001)$, for example, corresponds to the genotype $02021$.
 Note that there can be several distinct pairs of haplotype vectors for each genotype.
-In fact the number of different haplotype pairs for $g$ is $2^{k-1}$, where $k$ is the number of heterozygous loci, i.e., the number of 2s in the string.
 For example the genotype $02021$ corresponds also to the pair $(00011, 01001)$.
+In fact the number of different haplotype pairs for $g$ is $2^{k-1}$, where $k$ is the number of heterozygous loci, i.e., the number of 2s in the string.
 
-The input to the HI problem is the genotype data of $m$ individuals with the genotype vectors being all of length $n$.
-The objective is to find a pair of haplotype vectors for each of the $m$ genotypes such that the two haplotype vectors yield exactly the genotype vector.
+The input to the HI problem is the genotype data of $n$ individuals with the genotype vectors being all of length $m$.
+The objective is to find a pair of haplotype vectors for each of the $n$ genotypes such that the two haplotype vectors yield exactly the genotype vector.
 That is, for each genotype vector $g$ find a pair of haplotype vectors $(h, h')$ such that $g$ corresponds to $(h, h')$.
+Without additional constraints the problem is easy to solve but yields no guarantee that the chosen haplotypes are likely to be the correct ones.
 The Haplotype Inference by Pure Parsimony (HIPP) sets another constraint on this problem, namely that the set of distinct haplotype vectors used should be as small as possible.
 This condition has been experimentally validated to yield relatively accurate haplotype data~\cite{DBLP:journals/bioinformatics/WangX03a}.
-
 The HIPP problem was shown by Lancia et al to be APX-hard~\cite{DBLP:journals/informs/LanciaPR04}.
 
 In the following we present three solutions for the HIPP problem: a SAT encoding by Lynce and Marques-Silva~\cite{DBLP:conf/aaai/LynceM06} and ILP formulations by Gusfield~\cite{DBLP:conf/cpm/Gusfield03} and by Brown and Harrower~\cite{DBLP:journals/tcbb/BrownH06}.
@@ -160,7 +160,7 @@ In the following we present three solutions for the HIPP problem: a SAT encoding
 \section{SAT formulation}
 \label{sec:hipp-sat}
 Denote by $\mathcal{G}=\{g_i\mid 1\leq i \leq n\}$ a set of $n$ genotype vectors of length $m$ and by $g_{i,j}$ the $j$'th entry of genotype vector $g_i$.
-We construct a propositional formula $\phi (\mathcal{G}, r)$ which is satisfiable if and only if there exists a set of haplotypes $\mathcal{H}$ of size $r$ such that each genotype $g_i\in \mathcal{G}$ is explained by some pair fo haplotypes $(h_j, h_k)$ in $\mathcal{H}$.
+We construct a propositional formula $\phi (\mathcal{G}, r)$ which is satisfiable if and only if there exists a set of haplotypes $\mathcal{H}$ of size $r$ such that each genotype $g_i\in \mathcal{G}$ is explained by some pair of haplotypes $(h_j, h_k)$ in $\mathcal{H}$.
 To solve the HIPP problem the satisfiability of $\phi (\mathcal{G}, r)$ is checked for increasing values of $r$ until a value is found such that $\phi (\mathcal{G}, r)$ is satisfiable but $\phi (\mathcal{G}, r-1)$ is not.
 This value of $r$ is then the minimum number of haplotypes required, and the actual haplotypes can be extracted from the satisfying assignment to $\phi (\mathcal{G}, r)$.
 
@@ -175,10 +175,10 @@ The formula then requires two types of constraints
 
 Constraint (i) corresponds to equations $\sum_{1\leq k\leq r} s^a_{k,i} = 1$ and $\sum_{1\leq k\leq r} s^b_{k,i} = 1$ holding for all $i$ such that $1\leq i \leq n$.
 This constraint is enforced in $\phi (\mathcal{R}, r)$ utilizing a propositional encoding of an \emph{1-bit adder circuit}.
-The adder circuit uses variables $v^a_{ki}$ where $1\leq k \leq r+1$ and $1\leq i\leq n$ and the following constraints (the ones for $s^b_{k,i}$ are similar).
+The adder circuit uses variables $v^a_{k,i}$ where $1\leq k \leq r+1$ and $1\leq i\leq n$ and the following constraints (the ones for $s^b_{k,i}$ are similar).
 \begin{eqnarray}
 \forall i\text{ such that } 1\leq i\leq n: & v^a_{1,i} \leftrightarrow s^a_{1,i}\label{hipp-sat:clause1}\\
-\forall k, i\text{ such that } 1\leq k \leq r,\ 1\leq i\leq n: & \neg v^a_{k,i} \vee \neg s^a_{k,i}\label{hipp-sat:clause2}\\
+\forall k, i\text{ such that } 2\leq k \leq r,\ 1\leq i\leq n: & \neg v^a_{k,i} \vee \neg s^a_{k,i}\label{hipp-sat:clause2}\\
 \forall k, i\text{ such that } 1\leq k \leq r,\ 1\leq i\leq n: & v^a_{k+1,i} \leftrightarrow (s^a_{k,i}\vee v^a_{k,i} )\label{hipp-sat:clause3}\\
 \forall i\text{ such that } 1\leq i\leq n: & v^a_{r+1,i}=1\label{hipp-sat:clause4}
 \end{eqnarray}
@@ -188,7 +188,7 @@ and constraint \eqref{hipp-sat:clause3} sets $v^a_{k+1,i}$ to 1 whenever either 
 
 It can be shown using induction that the variable $v^a_{k,i}$ (for $k>1$) represents the disjunction $\bigvee_{1\leq h\leq k-1}s^a_{h,i} = s^a_{1,i}\vee\dots \vee s^a_{k-1,i}$.
 From constraints \eqref{hipp-sat:clause1} and \eqref{hipp-sat:clause3} it follows that $v^a_{2,i}$ is equivalent to $s^a_{1,i}$.
-Constraint \eqref{hipp-sat:clause3} also provides yields the proof of the inductive step.
+Constraint \eqref{hipp-sat:clause3} also provides the proof of the inductive step.
 Thus, constraint \eqref{hipp-sat:clause4} which sets $v^a_{r+1,i}=1$ ensures that at least one of $s^a_{1,i},\dots , s^a_{r,i}$ is set to 1.
 Furthermore, there can only be one $s^a_{k,i}$ set to 1 due to the following reasoning.
 Since $v^a_{k,i}$ is equivalent to $\bigvee_{1\leq h\leq k-1}s^a_{h,i} = s^a_{1,i}\vee\dots \vee s^a_{k-1,i}$ it follows that $v^a_{k,i}$ being set 1 enforces all $v^a_{h,i}$ to be set 1 for $h>k$.
@@ -227,19 +227,19 @@ The constraints $s^a_{k,i}\rightarrow (h_{k,j}\leftrightarrow g^a_{i,j})$ and $s
 \end{figure}
 The encoding is presented in Figure~\ref{fig:enc-hipp-sat}.
 
-% TODO: optimizations incl. symmetry-breaking
-Lynce and Marques-Silva use two techniques to facilitate and speed up the use of their RTIP encoding~\cite{DBLP:conf/aaai/LynceM06}.
-There are symmetries present in the plain SAT encoding, but fortunately these symmetries can be dispatched by utilizing symmetry-breaking predicates.
+
+Lynce and Marques-Silva use two techniques to facilitate and speed up the use of their HIPP-SAT encoding~\cite{DBLP:conf/aaai/LynceM06}.
+There are symmetries present in the plain HIPP-SAT encoding, but fortunately these symmetries can be dispatched by utilizing symmetry-breaking predicates.
 Since the usage of the encoding consists of calling $\phi (\mathcal{G}, r)$ with values of $r$ from some lower bound $lb$ up to $2n$ until the formula becomes satisfiable, the overall effort can be reduced by finding a large $lb$.
 The computation of lower bounds of $r$ are thus useful in speeding up SAT-based haplotype inference.
 
 Let $h$ and $h'$ be two concrete haplotype vectors.
 Assume that the valuation of $h_{k_1}$ is $h$, the valuation of $h_{k_2}$ is $h'$ and that $s_{k_1, i}^a$ and  $s_{k_2, i}^b$ are set true.
 This means that genotype $g_i$ is explained by haplotypes $h$ and $h'$.
-Another equivalent solution to the SAT encoding can be constructed from this one by swapping the roles of $h_{k_1}$ and $h_{k_2}$ as well as those of $s_{k_1, i}^a$ and  $s_{k_2, i}^b$.
+Another equivalent solution to the HIPP-SAT encoding can be constructed from this one by swapping the roles of $h_{k_1}$ and $h_{k_2}$ as well as those of $s_{k_1, i}^a$ and  $s_{k_2, i}^b$.
 This is an example of a symmetry present in the plain formulation, 
 which can be broken by enforcing the used haplotype to be in lexicographic order.
-The ordering constraint should thus enforce that the for any valuation $v$ it holds that $v(h_1) < v(h_2) < \dots < v(h_r)$ where $v(h_i)$ is the binary string $v(h_{i,1})v(h_{i,2})\dots v(h_{i,n})$.
+The ordering constraint should thus enforce that for any valuation $v$ it holds that $v(h_1) < v(h_2) < \dots < v(h_r)$ where $v(h_i)$ is the binary string $v(h_{i,1})v(h_{i,2})\dots v(h_{i,n})$.
 Frisch et al~\cite{DBLP:conf/cp/FrischHKMW02} present ways of encoding these types of ordering constraints.
 Essentially constraints are added to the encoding that for each $i\in\{1,\dots ,r-1\}$ enforce that $v(h_i)$ is lexicographically less than $v(h_{i+1})$.
 
@@ -249,12 +249,12 @@ The incompatibility graph has a node for each genotype and an edge between two n
 Assume that a clique of size $k$ exists in the constructed incompatibility graph.
 Then at least $2k - \sigma$ haplotypes are required where $\sigma$ is the number of genotypes in the clique without heterozygous loci.
 The number $2k-\sigma$ can thus be taken as the lower bound $lb$ for $r$.
-Since finding the largest clique in a graph is NP-hard it can be more beneficial to find a maximal clique using greedy heuristics.
+Since finding the largest clique in a graph is NP-hard it can be more beneficial to find a \emph{maximal} clique using greedy heuristics.
 
 
 \section{ILP formulations}
 \label{sec:ilp-hipp}
-We explain here two different formulations of the HIPP problem, RTIP~\cite{DBLP:conf/cpm/Gusfield03} and PolyIP~\cite{DBLP:journals/tcbb/BrownH06}.
+Two different ILP formulations of the HIPP problem, RTIP~\cite{DBLP:conf/cpm/Gusfield03} and PolyIP~\cite{DBLP:journals/tcbb/BrownH06}, are presented in this section.
 RTIP is an exponential-size encoding formulated and empirically evaluated by Gusfield in~\cite{DBLP:conf/cpm/Gusfield03}.
 Similar polynomial-size encodings were simultaneously and independently formulated~\cite{DBLP:journals/tcbb/BrownH06, DBLP:conf/recomb/HalldorssonBELYI02, DBLP:journals/informs/LanciaPR04}.
 Out of the polynomial size encodings we showcase PolyIP which is formulated by Brown and Harrower~\cite{DBLP:journals/tcbb/BrownH06}.
@@ -337,7 +337,7 @@ an entry of 1 in the genotype vector denotes a heterozygous location.
 The benefit of this notation is that now the elementwise sum of a pair of haplotypes is their corresponding genotype, i.e., $g_{i,k} = h_{j, k} + h_{l, k}$ for all $k\in\{1,\dots ,m\}$ iff genotype $g_i$ corresponds to pair of haplotypes $(h_{j}, h_{l})$.
 
 The PolyIP encoding models the $2n$ haplotypes $h_i$, using $2nm$ binary variables $h_{i,j}$ where $1\leq i \leq 2n$ and $1\leq j \leq m$.
-The haplotypes $h_{2i}$ and $h_{2i-1}$ are constrained by the encoding to correspond to genotype $g_i$ by including for each $i\in\{1, \dots , n\}$ and each $j\in\{1,\dots ,m\}$ the constraint
+The haplotypes $h_{2i}$ and $h_{2i-1}$ are constrained by the encoding to resolve genotype $g_i$ by including for each $i\in\{1, \dots , n\}$ and each $j\in\{1,\dots ,m\}$ the constraint
 $$ h_{2i,j} + h_{2i-1,j} = g_{i,j}. $$
 The encoding contains binary variables $d_{i,j}$ where $1\leq i<j\leq 2n$ to detect whether $h_i$ and $h_j$ are different.
 The constraints 
@@ -361,7 +361,7 @@ Minimize $\sum_{1\leq i \leq 2n} x_i$
 \text{for all  }i\in\{1,\dots , n\},\ j\in\{1,\dots ,m\}:&\quad h_{2i,j} + h_{2i-1,j} = g_{i,j} \\
 \text{for all  }i, j\in\{1,\dots , 2n\},\text{ such that } i<j:&\quad d_{i,j} \geq h_{i,k}-h_{j,k} \\
 &\quad d_{i,j} \geq h_{j,k}-h_{i,k} \\
-\text{for all  }i\in\{1,\dots , 2n\}:&\quad x_{i} \geq 2 - i \sum_{j=1}^{i-1} d_{i,j} \\
+\text{for all  }i\in\{1,\dots , 2n\}:&\quad x_{i} \geq 2 - i +  \sum_{j=1}^{i-1} d_{i,j} \\
 \text{for all  }i,j\in\{1,\dots , 2n\},\ k\in\{1,\dots ,m\}:&\quad x_i\in\{0,1\} \\
 &\quad h_{i,k}\in\{0,1\} \\
 &\quad d_{i,j}\in\{0,1\}
@@ -386,7 +386,8 @@ In contrast the RTIP encoding uses an atomic representation of the haplotypes an
 
 This structural difference is reflected in the sizes of the encodings.
 Let $n$ be the number of genotypes and $m$ the number of loci.
-The size of HIPP-SAT (without symmetry-breaking predicates) is \TODO{???} whereas the sizes of PolyIP and RTIP are \TODO{??} and \TODO{??}, respectively.
+The size of HIPP-SAT scales polynomially in $n$, $m$ and $r$, and the size of PolyIP is bounded by a polynomial in $n$ and $m$.
+The size of RTIP, however, scales linearly with respect to $n$, but exponentially with respect to the number of heterozygous loci (which is bounded above by $m$).
 That is, HIPP-SAT and PolyIP have polynomial size whereas the size of RTIP scales exponentially.
 
 The RTIP encoding is relatively straightforward since part of the work is done in the pre-processing phase.
@@ -398,7 +399,7 @@ Brown and Harrower note that their PolyIP encoding is not as fast as Gusfield's 
 Their PolyIP formulation, however, scales to larger instances due to its polynomial size (as opposed to the exponential size of RTIP).
 Due to these observations Brown and Harrower also formulate a hybrid encoding \emph{HybridIP} that is a mix between PolyIP and RTIP, and which can solve instances fast and scales to larger instances than RTIP~\cite{DBLP:conf/cpm/Gusfield03}.
 Essentially the HybridIP uses a mixed representation for the haplotypes; 
-some haplotypes are unfolded and have atomic representation as in RTIP whereas other have a structured representation like that of PolyIP.
+some haplotypes are unfolded and have atomic representation as in RTIP whereas others have a structured representation like that of PolyIP.
 However, the performance and scalability of SAT-based methods for HIPP (such as HIPP-SAT presented here) exceeds those of both PolyIP and RTIP~\cite{DBLP:journals/jcb/GracaLMO10}.
 
 
