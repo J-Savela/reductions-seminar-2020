@@ -16,6 +16,7 @@
 \usepackage{graphicx}
 \graphicspath{ {./resources/images/} }
 \usepackage{multirow}
+\usepackage[linewidth=1pt]{mdframed}
 
 % algorithms
 %\usepackage{algorithm}
@@ -100,7 +101,7 @@ and each literal is either an atom $p$ or a negated atom $\neg p$.
 CNF is a convenient standard format partly due to the fact that efficient polynomial-time algorithms exist for transforming arbitrary formulas into \emph{linear-size, equisatisfiable} CNF formulas~\cite{tseitin1983, DBLP:journals/jsc/PlaistedG86}.
 
 Practically efficient algorithms for solving the SAT problem have been developed despite the fact that SAT is an NP-Complete problem~\cite{DBLP:conf/stoc/Cook71}, 
-and SAT has become an importent problem solving technique with applications in model checking and verification, planning, scheduling, cryptography, computational biology et cetera.
+and SAT has become an important problem solving technique with applications in model checking and verification, planning, scheduling, cryptography, computational biology et cetera.
 The most efficient current SAT solvers are based on the \emph{conflict-driven clause learning} algorithm (CDCL) and use many optimizations and efficient data structures~\cite{DBLP:conf/iccad/SilvaS96, DBLP:journals/tc/Marques-SilvaS99, DBLP:conf/dac/MoskewiczMZZM01, DBLP:conf/aaai/GomesSK98, DBLP:journals/dam/GoldbergN07, ryan2004efficient, DBLP:conf/aaai/BayardoS97, DBLP:conf/sat/LewisSB05}.
 
 
@@ -118,6 +119,8 @@ Branch-and-bound procedure utilizing cutting planes, i.e., \emph{branch-and-cut}
 
 \section{Haplotype inference}
 \label{sec:hipp}
+\TODO{How relevant is the 2-allele haplotype inference? How to generalize to several alleles?}
+
 The human genetic information is contained in the double-stranded DNA molecules consisting of a linear sequence of 4 bases (\textbf{A}denosine, \textbf{C}ytosine, \textbf{G}uanine, \textbf{T}hymine) in the phosphate-deoxyribose backbone.
 The DNA molecules, which are packed into \emph{chromosomes}, consist of protein-coding intervals, which are called genes, and other non-coding parts.
 Different variants of a gene are called \emph{alleles}.
@@ -152,13 +155,21 @@ The objective is to find a pair of haplotype vectors for each of the $n$ genotyp
 That is, for each genotype vector $g$ find a pair of haplotype vectors $(h, h')$ such that $g$ corresponds to $(h, h')$.
 Without additional constraints the problem is easy to solve but yields no guarantee that the chosen haplotypes are likely to be the correct ones.
 The Haplotype Inference by Pure Parsimony (HIPP) sets another constraint on this problem, namely that the set of distinct haplotype vectors used should be as small as possible.
+
+\TODO{How does $n$ affect the accuracy?}
+
+\TODO{Elaborate: "relatively accurate haplotype data"}
+
 This condition has been experimentally validated to yield relatively accurate haplotype data~\cite{DBLP:journals/bioinformatics/WangX03a}.
 The HIPP problem was shown by Lancia et al to be APX-hard~\cite{DBLP:journals/informs/LanciaPR04}.
+\TODO{Need to mention what the complexity class APX is!}
 
 In the following we present three solutions for the HIPP problem: a SAT encoding by Lynce and Marques-Silva~\cite{DBLP:conf/aaai/LynceM06} and ILP formulations by Gusfield~\cite{DBLP:conf/cpm/Gusfield03} and by Brown and Harrower~\cite{DBLP:journals/tcbb/BrownH06}.
 
 \section{SAT formulation}
 \label{sec:hipp-sat}
+\TODO{Clarify what each subscripted variable means to make reading easier.}
+
 Denote by $\mathcal{G}=\{g_i\mid 1\leq i \leq n\}$ a set of $n$ genotype vectors of length $m$ and by $g_{i,j}$ the $j$'th entry of genotype vector $g_i$.
 We construct a propositional formula $\phi (\mathcal{G}, r)$ which is satisfiable if and only if there exists a set of haplotypes $\mathcal{H}$ of size $r$ such that each genotype $g_i\in \mathcal{G}$ is explained by some pair of haplotypes $(h_j, h_k)$ in $\mathcal{H}$.
 To solve the HIPP problem the satisfiability of $\phi (\mathcal{G}, r)$ is checked for increasing values of $r$ until a value is found such that $\phi (\mathcal{G}, r)$ is satisfiable but $\phi (\mathcal{G}, r-1)$ is not.
@@ -206,6 +217,7 @@ The constraints $s^a_{k,i}\rightarrow (h_{k,j}\leftrightarrow g^a_{i,j})$ and $s
 \begin{figure}
 \centering
 \small
+\begin{mdframed}
 \begin{align}
 \text{for all  }& i\in\{1,\dots , n\}:\nonumber\\
 & \quad\quad\quad\quad \sum_{1\leq k \leq r} s^a_{k,i} = 1 \\
@@ -222,9 +234,11 @@ The constraints $s^a_{k,i}\rightarrow (h_{k,j}\leftrightarrow g^a_{i,j})$ and $s
 & \quad\quad\quad\quad s^a_{k,i}\rightarrow (h_{k,j}\leftrightarrow g^a_{i,j}) \\
 & \quad\quad\quad\quad s^b_{k,i}\rightarrow (h_{k,j}\leftrightarrow g^b_{i,j}) \\
 \end{align}
+\end{mdframed}
 \caption{The plain HIPP-SAT encoding.}
 \label{fig:enc-hipp-sat}
 \end{figure}
+
 The encoding is presented in Figure~\ref{fig:enc-hipp-sat}.
 
 
@@ -283,6 +297,7 @@ The objective of RTIP is to minize the number of used haplotypes, i.e., $\sum_{1
 The entire encoding is presented in Figure~\ref{fig:enc-rtip}.
 
 \begin{figure}
+\begin{mdframed}
 \centering
 Minimize $\sum_{1\leq l \leq L} x_l$
 \begin{align}
@@ -292,6 +307,7 @@ Minimize $\sum_{1\leq l \leq L} x_l$
 \text{for all  }l\in\{1,\dots , L\}:&\quad x_l \in \{0,1\} \\
 \text{for all  }i\in\{1,\dots , n\}, j\in\{1,\dots , 2^{k_i-1}\}:&\quad y_{i,j} \in \{0,1\} 
 \end{align}
+\end{mdframed}
 \caption{The RTIP encoding.}
 \label{fig:enc-rtip}
 \end{figure}
@@ -355,6 +371,7 @@ The objective of the encoding is therefore to minimize $\sum_{1\leq i\leq 2n} x_
 The PolyIP encoding is presented in Figure~\ref{fig:enc-polyip}.
 
 \begin{figure}
+\begin{mdframed}
 \centering
 Minimize $\sum_{1\leq i \leq 2n} x_i$
 \begin{align}
@@ -366,6 +383,7 @@ Minimize $\sum_{1\leq i \leq 2n} x_i$
 &\quad h_{i,k}\in\{0,1\} \\
 &\quad d_{i,j}\in\{0,1\}
 \end{align}
+\end{mdframed}
 \caption{The PolyIP encoding.}
 \label{fig:enc-polyip}
 \end{figure}
@@ -385,7 +403,7 @@ The HIPP-SAT and PolyIP encodings are structurally similar since they both utili
 In contrast the RTIP encoding uses an atomic representation of the haplotypes and computes necessary information about the relationship of the haplotypes and genotypes in a pre-processing phase.
 
 This structural difference is reflected in the sizes of the encodings.
-Let $n$ be the number of genotypes and $m$ the number of loci.
+Let $n$ be the number of genotypes, $m$ the number of loci and $r$ the number of distinct haplotypes used in HIPP-SAT.
 The size of HIPP-SAT scales polynomially in $n$, $m$ and $r$, and the size of PolyIP is bounded by a polynomial in $n$ and $m$.
 The size of RTIP, however, scales linearly with respect to $n$, but exponentially with respect to the number of heterozygous loci (which is bounded above by $m$).
 That is, HIPP-SAT and PolyIP have polynomial size whereas the size of RTIP scales exponentially.
