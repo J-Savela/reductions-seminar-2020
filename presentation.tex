@@ -100,7 +100,7 @@
 %	TITLE PAGE
 %----------------------------------------------------------------------------------------
 
-\title[]{Comparing SAT and ILP for Haplotype Inference} % The short title appears at the bottom of every slide, the full title is only on the title page
+\title[]{Haplotype Inference via Boolean Satisfiability and Integer Linear Programming} % The short title appears at the bottom of every slide, the full title is only on the title page
 
 \author{Jarkko Savela} % Your name
 \institute{University of Helsinki} % Your institution as it will appear on the bottom of every slide, may be shorthand to save space
@@ -180,7 +180,7 @@
 \end{itemize}
 \item Which one is the correct pair of haplotypes?
 \item Pure parsimony
-\item Experimentally validated to give relatively accurate results
+\item Experimentally validated to give relatively accurate results~\cite{DBLP:journals/bioinformatics/WangX03a}
 \end{itemize}
 \end{frame}
 
@@ -289,7 +289,7 @@ $$ s^b_{k,i} \rightarrow (h_{k,j} \leftrightarrow g^b_{i,j}) $$
 \item $\mathcal{G} = \{g_i\}$ set of $n$ genotypes of length $m$
 \item Assign binary variable $x_i$ for each potential haplotype
 \item Haplotype $h_i$ is used iff $x_i = 1$
-\item Binary variable $y_{i,j}$ for each haplotype pair $p_j$
+\item Binary variable $y_{i,j}$ for each haplotype pair $p_j$ of $g_i$
 \item $y_{i,j} = 1$ iff haplotype pair $p_j$ is used to explain genotype $g_i$ 
 \item Goal: Minimize $\displaystyle \sum_i x_i$
 \end{itemize}
