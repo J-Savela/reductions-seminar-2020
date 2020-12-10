@@ -1,5 +1,5 @@
 \documentclass[12pt,a4paper]{article}
-%\usepackage[margin=1in]{geometry}
+\usepackage[margin=1.5in]{geometry}
 
 % Localization and encoding
 \usepackage[utf8]{inputenc}
@@ -68,7 +68,7 @@
 
 \section{Introduction}
 Haplotype inference is a crucial problem of modern genetics with wide-ranging applications in, e.g., correlating disease susceptibility to individuals' haplotypes.
-Due to technical difficulties the direct measurement of haplotypes is challenging, and current methods rely on indirectly inferring haplotypes from genotype data.
+Due to technical difficulties, the direct measurement of haplotypes is challenging, and current methods rely on indirectly inferring haplotypes from genotype data.
 
 In general there are many different haplotypes that can result in the same genotype, 
 which is why a criterion is needed to choose between the possibilities when inferring haplotype from genotype.
@@ -97,7 +97,7 @@ A formula $\phi$ is in CNF if it is a conjunction of \emph{clauses}
 $$ \bigwedge_{i\in I} C_i $$
 where each clause $C_i$ is a disjunction of \emph{literals}
 $$ C_i = \bigvee_{j\in J_i} l_j $$
-and each literal is either an atom $p$ or a negated atom $\neg p$.
+and each literal $l_j$ is either an atom $p$ or a negated atom $\neg p$.
 CNF is a convenient standard format partly due to the fact that efficient polynomial-time algorithms exist for transforming arbitrary formulas into \emph{linear-size, equisatisfiable} CNF formulas~\cite{tseitin1983, DBLP:journals/jsc/PlaistedG86}.
 
 Practically efficient algorithms for solving the SAT problem have been developed despite the fact that SAT is an NP-Complete problem~\cite{DBLP:conf/stoc/Cook71}, 
@@ -119,19 +119,23 @@ Branch-and-bound procedure utilizing cutting planes, i.e., \emph{branch-and-cut}
 
 \section{Haplotype inference}
 \label{sec:hipp}
-\TODO{How relevant is the 2-allele haplotype inference? How to generalize to several alleles?}
-
 The human genetic information is contained in the double-stranded DNA molecules consisting of a linear sequence of 4 bases (\textbf{A}denosine, \textbf{C}ytosine, \textbf{G}uanine, \textbf{T}hymine) in the phosphate-deoxyribose backbone.
 The DNA molecules, which are packed into \emph{chromosomes}, consist of protein-coding intervals, which are called genes, and other non-coding parts.
-Different variants of a gene are called \emph{alleles}.
+Different variants of a gene are called \emph{alleles}, and there can exist 2 or more different alleles for a gene.
 Humans are a \emph{diploid} species, which means that we have two copies of each chromosome (one from each parent).
 We thus have two alleles of each gene, and we are said to be \emph{homozygous} with regard to a gene if we have two identical alleles and \emph{heterozygous} otherwise.
 
-\emph{Haplotype} refers to the information contained in a single chromosome whereas the conflated information contained in the pair of  homologous chromosomes inherited is referred to as the \emph{genotype}.
+\emph{Haplotype} refers to the information contained in a single chromosome whereas the conflated information contained in the pair of  \emph{homologous} chromosomes inherited is referred to as the \emph{genotype}.
+The genotype and haplotype data can take the form of full DNA sequences, \emph{microsatellite repetitions} or so-called \emph{single nucleotide polymorphisms} (SNPs).
+Single nucleotide polymorphisms represent the variation at a single nucleotide on the population level, and usually this variation is mostly between two nucleotides.
+
 In practice it is difficult and expensive to experimentally detect haplotype information.
 Detecting genotype information has, however, become much faster, cheaper and more reliable in the recent decades.
 Potential haplotypes can be computationally inferred from genotype data, and this is the problem referred to as the haplotype inference (HI) problem.
 Haplotype data has the potential to yield new insight into genetic predisposition to, e.g., diseases, which makes the HI problem of great importance.
+
+The HI problem formulations can be classified as \emph{biallelic} (two alleles) and \emph{multiallelic} (more than two alleles).
+The following subsection considers the biallelic problem formulation motivated by the fact that most SNPs vary mostly between two nucleotides.
 
 \subsection{Haplotype Inference by Pure Parsimony}
 The genotype data for the computational problem is represented as vectors over the alphabet $\{0, 1, 2\}$. 
@@ -156,19 +160,18 @@ That is, for each genotype vector $g$ find a pair of haplotype vectors $(h, h')$
 Without additional constraints the problem is easy to solve but yields no guarantee that the chosen haplotypes are likely to be the correct ones.
 The Haplotype Inference by Pure Parsimony (HIPP) sets another constraint on this problem, namely that the set of distinct haplotype vectors used should be as small as possible.
 
-\TODO{How does $n$ affect the accuracy?}
+This condition has been experimentally validated on both simulated and real data to yield relatively accurate haplotype data~\cite{DBLP:journals/bioinformatics/WangX03a}.
+It has also been observed that the accuracy tends to increase with increasing sample size, i.e., the number $n$ of genotypes in the population~\cite{DBLP:journals/bioinformatics/WangX03a}.
 
-\TODO{Elaborate: "relatively accurate haplotype data"}
-
-This condition has been experimentally validated to yield relatively accurate haplotype data~\cite{DBLP:journals/bioinformatics/WangX03a}.
 The HIPP problem was shown by Lancia et al to be APX-hard~\cite{DBLP:journals/informs/LanciaPR04}.
-\TODO{Need to mention what the complexity class APX is!}
+This indicates that the HIPP problem is difficult to solve even approximately since APX is the complexity class of NP optimization problems that have a polynomial-time algorithm yielding an answer at most a constant factor away from the optimal solution~\cite{DBLP:books/lib/Ausiello99}.
 
 In the following we present three solutions for the HIPP problem: a SAT encoding by Lynce and Marques-Silva~\cite{DBLP:conf/aaai/LynceM06} and ILP formulations by Gusfield~\cite{DBLP:conf/cpm/Gusfield03} and by Brown and Harrower~\cite{DBLP:journals/tcbb/BrownH06}.
 
 \section{SAT formulation}
 \label{sec:hipp-sat}
-\TODO{Clarify what each subscripted variable means to make reading easier.}
+This section presents a SAT encoding for solving the HIPP problem by Lynce and Marques-Silva~\cite{DBLP:conf/aaai/LynceM06}.
+We refer to the encoding as HIPP-SAT.
 
 Denote by $\mathcal{G}=\{g_i\mid 1\leq i \leq n\}$ a set of $n$ genotype vectors of length $m$ and by $g_{i,j}$ the $j$'th entry of genotype vector $g_i$.
 We construct a propositional formula $\phi (\mathcal{G}, r)$ which is satisfiable if and only if there exists a set of haplotypes $\mathcal{H}$ of size $r$ such that each genotype $g_i\in \mathcal{G}$ is explained by some pair of haplotypes $(h_j, h_k)$ in $\mathcal{H}$.
@@ -185,7 +188,7 @@ The formula then requires two types of constraints
 \end{enumerate}
 
 Constraint (i) corresponds to equations $\sum_{1\leq k\leq r} s^a_{k,i} = 1$ and $\sum_{1\leq k\leq r} s^b_{k,i} = 1$ holding for all $i$ such that $1\leq i \leq n$.
-This constraint is enforced in $\phi (\mathcal{R}, r)$ utilizing a propositional encoding of an \emph{1-bit adder circuit}.
+This constraint is enforced in $\phi (\mathcal{R}, r)$ utilizing a propositional encoding of a \emph{1-bit adder circuit}.
 The adder circuit uses variables $v^a_{k,i}$ where $1\leq k \leq r+1$ and $1\leq i\leq n$ and the following constraints (the ones for $s^b_{k,i}$ are similar).
 \begin{eqnarray}
 \forall i\text{ such that } 1\leq i\leq n: & v^a_{1,i} \leftrightarrow s^a_{1,i}\label{hipp-sat:clause1}\\
@@ -238,13 +241,12 @@ The constraints $s^a_{k,i}\rightarrow (h_{k,j}\leftrightarrow g^a_{i,j})$ and $s
 \caption{The plain HIPP-SAT encoding.}
 \label{fig:enc-hipp-sat}
 \end{figure}
-
 The encoding is presented in Figure~\ref{fig:enc-hipp-sat}.
 
 
 Lynce and Marques-Silva use two techniques to facilitate and speed up the use of their HIPP-SAT encoding~\cite{DBLP:conf/aaai/LynceM06}.
 There are symmetries present in the plain HIPP-SAT encoding, but fortunately these symmetries can be dispatched by utilizing symmetry-breaking predicates.
-Since the usage of the encoding consists of calling $\phi (\mathcal{G}, r)$ with values of $r$ from some lower bound $lb$ up to $2n$ until the formula becomes satisfiable, the overall effort can be reduced by finding a large $lb$.
+Since the usage of the encoding consists of calling $\phi (\mathcal{G}, r)$ with values of $r$ from some lower bound $lb$ up to $2n$ or until the formula becomes satisfiable, the overall effort can be reduced by finding a large $lb$.
 The computation of lower bounds of $r$ are thus useful in speeding up SAT-based haplotype inference.
 
 Let $h$ and $h'$ be two concrete haplotype vectors.
@@ -364,7 +366,7 @@ ensure that $d_{i,j}$ is set to 1 whenever $h_i\neq h_j$.
 
 To compute the number of distinct haplotypes in the collection of $2n$ haplotypes variables $x_i$ with $1\leq i\leq 2n$ are included.
 The constraints
-$$ \text{for all }i\in\{1,\dots ,2n\}:\quad  x_{i} \geq 2 - i \sum_{j=1}^{i-1} d_{i,j} $$
+$$ \text{for all }i\in\{1,\dots ,2n\}:\quad  x_{i} \geq 2 - i  + \sum_{j=1}^{i-1} d_{i,j} $$
 ensure that $x_i$ is set to 1 whenever haplotype $h_i$ is distinct from haplotypes $h_1,\dots , h_{i-1}$.
 The sum $\sum_{1\leq i\leq 2n} x_i$ then corresponds to the number of distinct haplotypes used.
 The objective of the encoding is therefore to minimize $\sum_{1\leq i\leq 2n} x_i$.
@@ -397,7 +399,7 @@ Other optimizations suggested include problem specific \emph{cuts} based on the 
 
 \section{Discussion}
 
-We have now presented three encodings for solving the HIPP problem, one SAT encoding (HIPP-SAT) and two ILP encodings (RTIP and PolyIP).
+Three encodings for solving the HIPP problem were presented in the preceeding sections; one SAT encoding (HIPP-SAT) and two ILP encodings (RTIP and PolyIP).
 These encoding differ both in terms of their structure as well as their size, performance and available optimizations.
 The HIPP-SAT and PolyIP encodings are structurally similar since they both utilize a structured representation of the haplotypes thus giving the solvers access to this representation.
 In contrast the RTIP encoding uses an atomic representation of the haplotypes and computes necessary information about the relationship of the haplotypes and genotypes in a pre-processing phase.
@@ -408,7 +410,7 @@ The size of HIPP-SAT scales polynomially in $n$, $m$ and $r$, and the size of Po
 The size of RTIP, however, scales linearly with respect to $n$, but exponentially with respect to the number of heterozygous loci (which is bounded above by $m$).
 That is, HIPP-SAT and PolyIP have polynomial size whereas the size of RTIP scales exponentially.
 
-The RTIP encoding is relatively straightforward since part of the work is done in the pre-processing phase.
+The RTIP encoding is relatively straightforward since a large part of the work is done in the pre-processing phase.
 Due to this fact the optimizations used for RTIP mostly concern the pre-processing phase.
 Gusfield~\cite{DBLP:conf/cpm/Gusfield03} explains how the number of haplotypes to unfold can be reduced and how the unfolding can be accomplished efficiently.
 The optimizations utilized in the HIPP-SAT and PolyIP formulations, on the other hand, modify the plain encoding itself by, e.g., including symmetry-breaking or transitivity constraints.
